@@ -7,11 +7,11 @@
 //   <command> | trace         watch what a command prints
 //   trace demo                sample traffic, to try the viewer
 //
-// Options: --port <n> (default 4400), --open (open the browser)
+// Options: --port <n> (default 4400), --open (open the browser), --show (keep trace lines in the terminal)
 
 import { spawn } from 'node:child_process';
 import { startServer } from '../src/server.mjs';
-import { parseLine, lineSplitter, objectSplitter, fromTail } from '../src/parse.mjs';
+import { parseLine, lineSplitter, objectSplitter, fromTail, passThrough } from '../src/parse.mjs';
 import { runDemo } from '../src/demo.mjs';
 
 const HELP = `Repo Trace: your API's calls as a live waterfall.
@@ -25,6 +25,7 @@ const HELP = `Repo Trace: your API's calls as a live waterfall.
 Options
   --port <n>    viewer port (default 4400)
   --open        open the viewer in the browser
+  --show        keep trace lines in the terminal too
 
 A call is one line of JSON with a "trace" key. See docs/format.md.`;
 
@@ -36,6 +37,7 @@ function parseArgs(argv) {
     if (a === '--') { opt.rest = argv.slice(i + 1); opt.cmd = 'run'; return opt; }
     if (a === '--port') { opt.port = Number(argv[++i]); continue; }
     if (a === '--open') { opt.open = true; continue; }
+    if (a === '--show') { opt.show = true; continue; }
     if (a === '-h' || a === '--help') { opt.cmd = 'help'; return opt; }
     if (!opt.cmd) { opt.cmd = a; continue; }
     opt.rest.push(a);
@@ -49,21 +51,22 @@ function openBrowser(url) {
 }
 
 // Run a command, show its output unchanged, and read it.
-function watchProcess(command, args, { onLine, onObject }) {
+// Trace lines are kept out of the terminal (the viewer has them) unless show.
+function watchProcess(command, args, { onLine, onObject, show }) {
   const child = spawn(command, args, {
     stdio: ['inherit', 'pipe', 'pipe'],
     env: { ...process.env, FORCE_COLOR: process.env.FORCE_COLOR ?? '1' },
   });
-  const read = onObject ? objectSplitter(onObject) : null;
   for (const [stream, out] of [[child.stdout, process.stdout], [child.stderr, process.stderr]]) {
-    const lines = lineSplitter(onLine || (() => {}));
     stream.setEncoding('utf8');
-    stream.on('data', (chunk) => {
-      if (!onObject || stream === child.stderr) out.write(chunk);
-      if (read && stream === child.stdout) read.push(chunk);
-      else lines.push(chunk);
-    });
-    stream.on('end', () => lines.end());
+    if (onObject && stream === child.stdout) {
+      const read = objectSplitter(onObject);
+      stream.on('data', (chunk) => read.push(chunk));
+    } else {
+      const copy = passThrough(out, onLine || (() => null), { show });
+      stream.on('data', (chunk) => copy.push(chunk));
+      stream.on('end', () => copy.end());
+    }
   }
   child.on('error', (err) => {
     console.error(`trace: couldn't run ${command}: ${err.message}`);
@@ -105,17 +108,17 @@ async function main() {
   console.error(`trace: viewer on ${viewer.url} · ${source.label}`);
   if (opt.open) openBrowser(viewer.url);
 
-  const onLine = (line) => { const e = parseLine(line); if (e) viewer.emit(e); };
+  const onLine = (line) => { const e = parseLine(line); if (e) viewer.emit(e); return e; };
 
   if (opt.cmd === 'demo') runDemo(viewer.emit);
-  else if (opt.cmd === 'dev') watchProcess(npx, ['wrangler', 'dev', ...opt.rest], { onLine });
+  else if (opt.cmd === 'dev') watchProcess(npx, ['wrangler', 'dev', ...opt.rest], { onLine, show: opt.show });
   else if (opt.cmd === 'tail') {
     watchProcess(npx, ['wrangler', 'tail', ...opt.rest, '--format', 'json'], {
       onObject: (ev) => { for (const e of fromTail(ev)) viewer.emit(e); },
     });
-  } else if (opt.cmd === 'run') watchProcess(opt.rest[0], opt.rest.slice(1), { onLine });
+  } else if (opt.cmd === 'run') watchProcess(opt.rest[0], opt.rest.slice(1), { onLine, show: opt.show });
   else {
-    const lines = lineSplitter((line) => { process.stdout.write(line + '\n'); onLine(line); });
+    const lines = lineSplitter((line) => { if (!onLine(line) || opt.show) process.stdout.write(line + '\n'); });
     process.stdin.setEncoding('utf8');
     process.stdin.on('data', (c) => lines.push(c));
     process.stdin.on('end', () => { lines.end(); console.error('trace: input ended; the viewer stays open (Ctrl+C to stop)'); });

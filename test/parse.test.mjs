@@ -84,3 +84,21 @@ test('a Workflow or cron event without a request gives only its logged calls', (
   assert.equal(events.length, 1);
   assert.equal(events[0].kind, 'episode');
 });
+
+test('the terminal gets every line but trace lines, partial lines after a pause', async () => {
+  const { passThrough } = await import('../src/parse.mjs');
+  let out = '';
+  const sink = { write: (s) => { out += s; } };
+  const copy = passThrough(sink, (l) => parseLine(l));
+  copy.push('ready on :8787\n{"trace":"span","group":"g","name":"x","svc":"d1","ms":1}\nhalf');
+  assert.equal(out, 'ready on :8787\n');
+  await new Promise((r) => setTimeout(r, 80));
+  assert.equal(out, 'ready on :8787\nhalf');
+  copy.push(' done\n');
+  copy.end();
+  assert.equal(out, 'ready on :8787\nhalf done\n');
+  let shown = '';
+  const all = passThrough({ write: (s) => { shown += s; } }, (l) => parseLine(l), { show: true });
+  all.push('{"trace":"group","group":"g"}\n');
+  assert.equal(shown, '{"trace":"group","group":"g"}\n');
+});

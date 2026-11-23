@@ -23,7 +23,7 @@ trace -- npm run dev       # any command
 npm run dev | trace        # or pipe it
 ```
 
-The viewer is on http://localhost:4400 (`--port` to change, `--open` to open it). It listens on your computer only.
+The viewer is on http://localhost:4400 (`--port` to change, `--open` to open it). It listens on your computer only. The process's output still shows in the terminal, minus the trace lines (`--show` keeps them).
 
 Then log your calls. Copy `lib/trace.ts` into your app:
 

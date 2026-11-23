@@ -71,6 +71,34 @@ export function lineSplitter(onLine) {
   };
 }
 
+/**
+ * Copies a process's output to `out` line by line, handing each line to `onLine` (which returns the trace event it
+ * found, or null). Trace lines are left out unless `show`: the viewer has them. A partial line (a prompt, a spinner) is
+ * written after 50 ms without a newline.
+ */
+export function passThrough(out, onLine, { show = false } = {}) {
+  let buf = '', timer = null;
+  const flush = () => { timer = null; if (buf) { out.write(buf); buf = ''; } };
+  return {
+    push(chunk) {
+      if (timer) { clearTimeout(timer); timer = null; }
+      buf += chunk;
+      let n;
+      while ((n = buf.indexOf('\n')) !== -1) {
+        const line = buf.slice(0, n + 1);
+        buf = buf.slice(n + 1);
+        const e = onLine(line.replace(/\r?\n$/, ''));
+        if (!e || show) out.write(line);
+      }
+      if (buf) timer = setTimeout(flush, 50);
+    },
+    end() {
+      if (timer) clearTimeout(timer);
+      if (buf) { const e = onLine(buf); if (!e || show) out.write(buf); buf = ''; }
+    },
+  };
+}
+
 /** Splits a chunked stream of (pretty-printed) JSON objects. Text between objects is ignored. */
 export function objectSplitter(onObject) {
   let buf = '', depth = 0, inStr = false, esc = false, start = -1;

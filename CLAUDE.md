@@ -4,7 +4,7 @@ Studio G tool, one of the Repo tools (with Repo Atlas; "Repo" is the suite, 23 N
 
 ## Layout
 - `bin/trace.mjs`: the command (`dev`, `tail`, `--`, stdin, `demo`).
-- `src/parse.mjs`: printed lines → events (`parseLine`), chunk splitters, `fromTail` (a `wrangler tail --format json` event → a request span plus the events it logged).
+- `src/parse.mjs`: printed lines → events (`parseLine`), the terminal copy without trace lines (`passThrough`, `--show` keeps them), chunk splitters, `fromTail` (a `wrangler tail --format json` event → a request span plus the events it logged).
 - `src/server.mjs`: the viewer page and `/events` (server-sent events). Listens on 127.0.0.1 only; keeps the last 20,000 events for a page opened late.
 - `src/demo.mjs`: sample traffic shaped like learn.fm making an episode.
 - `viewer/index.html`: the whole viewer, one file, no build, no framework. State is reduced from events in the page.

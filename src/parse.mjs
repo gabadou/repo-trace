@@ -164,3 +164,26 @@ export function fromTail(ev) {
   }
   return out;
 }
+
+// wrangler dev prints a line per request (miniflare's entry worker): `GET /v1/episodes 200 OK (38ms)`, after a
+// `[wrangler:info]` prefix and in colour.
+const REQUEST = /(?:^|\s)(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(\/\S*)\s+(\d{3})\b[^()]*\((\d+(?:\.\d+)?)\s*ms\)/;
+let reqSeq = 0;
+
+/** One wrangler dev request line → trace events (a request group and its span), or null. */
+export function fromWranglerLine(raw) {
+  if (typeof raw !== 'string' || !raw.includes('ms)')) return null;
+  const m = raw.replace(ANSI, '').match(REQUEST);
+  if (!m) return null;
+  const [, method, path, status, ms] = m;
+  const at = Date.now() - Number(ms);
+  const group = `req_${at.toString(36)}_${(reqSeq++).toString(36)}`;
+  const name = `${method} ${path}`;
+  return [
+    { trace: 'group', group, kind: 'request', label: name },
+    { trace: 'span', id: group, group, name, svc: 'worker', at, ms: Number(ms), ok: Number(status) < 500, status: Number(status) },
+  ];
+}
+
+/** Terminal text without colours, for the Output view. */
+export const plain = (s) => String(s).replace(ANSI, '');

@@ -102,3 +102,15 @@ test('the terminal gets every line but trace lines, partial lines after a pause'
   all.push('{"trace":"group","group":"g"}\n');
   assert.equal(shown, '{"trace":"group","group":"g"}\n');
 });
+
+test('wrangler dev request lines become request calls', async () => {
+  const { fromWranglerLine } = await import('../src/parse.mjs');
+  const evs = fromWranglerLine('\x1b[2m[wrangler:info]\x1b[0m \x1b[1mPOST\x1b[22m /v1/calls/abc/turns \x1b[32m\x1b[1m200\x1b[22m OK \x1b[39m\x1b[90m(2412ms)\x1b[39m');
+  assert.equal(evs[0].label, 'POST /v1/calls/abc/turns');
+  assert.equal(evs[1].status, 200);
+  assert.equal(evs[1].ms, 2412);
+  assert.equal(evs[1].ok, true);
+  assert.equal(fromWranglerLine('GET /x 503 Service Unavailable (5ms)')[1].ok, false);
+  assert.equal(fromWranglerLine('Ready on http://localhost:8787'), null);
+  assert.equal(fromWranglerLine('took (5ms)'), null);
+});

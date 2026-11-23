@@ -134,6 +134,42 @@ dd { margin: 0; overflow-wrap: anywhere; }
 
 .empty { padding: 32px; display: flex; flex-direction: column; gap: 12px; max-width: 720px; }
 .empty pre { margin: 0; font: 12px/18px var(--mono); padding: 12px; background: var(--surface-2); border-radius: 5px; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Picker, routes, output */
+.picker { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.picker > .card { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.plist { flex: 999 1 560px; min-width: 0; }
+.prow {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 12px; border: 0; border-top: 1px solid var(--faint);
+  background: transparent; text-align: left; cursor: pointer; border-radius: 7px; width: 100%;
+}
+.prow:first-of-type { border-top: 0; }
+.prow:hover { background: var(--surface-2); }
+.prow b { font-weight: 600; }
+.modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.option {
+  display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface); text-align: left; cursor: pointer;
+}
+.option[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+.option b { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.option b::before { content: ""; width: 6px; height: 6px; background: var(--line); }
+.option[aria-pressed="true"] b::before { background: var(--accent); }
+.rlist { flex: 1 1 320px; max-width: 460px; }
+.route { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 5px 0; border-top: 1px solid var(--faint); font-size: 13px; }
+.route .path, .rrow .path { overflow-wrap: break-word; }
+.method { font-size: 11px; line-height: 18px; font-weight: 600; letter-spacing: 0.04em; padding: 0 6px; border-radius: 5px; text-align: center; background: var(--tb); color: var(--ti); }
+.rtable .rrow {
+  display: grid; grid-template-columns: 72px minmax(0, 2fr) 56px 64px 72px minmax(0, 1.4fr); gap: 12px; align-items: center;
+  padding: 8px 16px; border: 0; border-top: 1px solid var(--faint); width: 100%; background: transparent; text-align: left; font-size: 13px; cursor: pointer;
+}
+.rtable .rrow.head { cursor: default; border-top: 0; border-bottom: 1px solid var(--line); }
+.rtable .rrow[aria-selected="true"] { background: var(--accent-soft); box-shadow: inset 2px 0 0 var(--accent); }
+.rtable .rrow.idle { color: var(--ink-muted); }
+.output { padding: 12px 16px; font: 12px/18px var(--mono); max-height: 70vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.notice { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-color: var(--danger); }
+.navsep { height: 1px; background: var(--line); margin: 8px 0; }
+.linkbtn { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; font-size: 13px; text-align: left; }
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
 [hidden] { display: none !important; }
 @media (max-width: 760px) {
   :root { --lab: 128px; }
@@ -143,6 +179,9 @@ dd { margin: 0; overflow-wrap: anywhere; }
   main { padding: 16px; }
   .grow { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.3fr) 56px 52px; }
   .grow .c-kind, .grow .c-start { display: none; }
+  .modes { grid-template-columns: minmax(0, 1fr); }
+  .rtable .rrow { grid-template-columns: 64px minmax(0, 1fr) 48px 56px; }
+  .rtable .rrow .c-took, .rtable .rrow .c-where { display: none; }
   .detail { max-width: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -152,10 +191,15 @@ dd { margin: 0; overflow-wrap: anywhere; }
 <div class="app">
   <aside class="side">
     <div class="mark">REPO TRACE<i></i></div>
-    <div class="block">
-      <span class="meta">Source</span>
+    <div class="block" id="src-block">
+      <span class="meta" id="src-meta">Source</span>
+      <span class="mode" id="src-name" hidden></span>
       <span class="mode"><span class="px" id="src-px"></span><span id="src-mode">Connecting</span></span>
       <span class="small muted" id="src-label"></span>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px" id="src-actions" hidden>
+        <button class="linkbtn" type="button" id="stop">Stop</button>
+        <button class="linkbtn" type="button" id="change">Change project</button>
+      </div>
     </div>
     <nav aria-label="What to show" id="nav"></nav>
     <footer>
@@ -178,9 +222,26 @@ dd { margin: 0; overflow-wrap: anywhere; }
       </div>
     </header>
 
+    <section class="card notice" id="notice" hidden>
+      <span id="notice-text"></span>
+      <span style="display:flex;gap:8px">
+        <button class="btn" type="button" id="notice-output">See output</button>
+        <button class="btn primary" type="button" id="notice-again">Start again</button>
+      </span>
+    </section>
+
+    <section id="picker" hidden></section>
+
+    <section class="card rtable" id="routes" aria-label="Routes" hidden></section>
+
+    <section class="card" id="output-card" aria-label="Output" hidden>
+      <div class="output" id="output"></div>
+    </section>
+
     <section class="card empty" id="empty">
-      <h2>Waiting for the first call</h2>
-      <p class="muted" style="margin:0">Repo Trace shows every line your app prints that is a JSON object with a <b>trace</b> key. One call, finished:</p>
+      <h2 id="empty-title">Waiting for the first call</h2>
+      <p style="margin:0" id="empty-lead" hidden></p>
+      <p class="muted" style="margin:0">Repo Trace shows every request, and every line your app prints that is a JSON object with a <b>trace</b> key. To see your own steps and outside calls, log one finished call like this:</p>
       <pre>console.log(JSON.stringify({ trace: "span", group: "ep_1", name: "write", svc: "claude", ms: 1200, ok: true }))</pre>
       <p class="muted" style="margin:0">Or a start and an end, to see it while it runs. The whole format is in docs/format.md, and lib/trace.ts writes it for you.</p>
     </section>
@@ -259,6 +320,7 @@ function svcName(svc) {
 const S = {
   groups: new Map(), where: new Map(), source: null, filter: 'all',
   group: null, span: null, follow: true, paused: false, queue: [], connected: false,
+  session: null, forcePicker: false, view: 'calls', output: [], routes: null, routesFor: null,
 };
 const MAX_GROUPS = 300;
 
@@ -327,7 +389,7 @@ function summary(g) {
   if (running) { status = `Running · ${spans.length - running} of ${spans.length} done`; tone = 'run'; }
   else if (failed.length) {
     const lastEnd = spans.reduce((a, s) => (s.end > (a?.end ?? -1) ? s : a), null);
-    if (lastEnd && lastEnd.ok === false) { status = `Failed · ${lastEnd.note || lastEnd.name}`; tone = 'bad'; }
+    if (lastEnd && lastEnd.ok === false) { status = `Failed · ${lastEnd.note || lastEnd.status || lastEnd.name}`; tone = 'bad'; }
     else { status = `Done · ${failed.length} ${plural('failure', failed.length)} recovered`; tone = 'ok'; }
   } else { status = 'Done'; tone = 'ok'; }
   const end = running ? Date.now() : g.last;
@@ -345,31 +407,257 @@ function kinds() {
 }
 function kindLabel(k) { const n = { episode: 'Episodes', request: 'Requests', calls: 'Other', other: 'Other' }[k]; return n || (k.charAt(0).toUpperCase() + k.slice(1) + 's'); }
 function visibleGroups() {
-  return [...S.groups.values()].filter((g) => S.filter === 'all' || g.kind === S.filter).sort((a, b) => b.first - a.first);
+  const route = S.filter.startsWith('route:') ? S.filter.slice(6) : null;
+  return [...S.groups.values()]
+    .filter((g) => S.filter === 'all' || g.kind === S.filter || (route && routeKey(routeOf(g)) === route))
+    .sort((a, b) => b.first - a.first);
 }
 
-function draw() {
-  // Source
-  const src = S.source || {};
-  $('src-mode').textContent = src.mode === 'production' ? 'Production' : src.mode === 'demo' ? 'Demo' : src.mode === 'local' ? 'Local' : 'Connecting';
-  $('src-px').style.background = src.mode === 'production' ? 'var(--danger)' : 'var(--accent)';
-  $('src-label').textContent = src.label || '';
-  const live = $('live');
-  live.lastChild.textContent = S.paused ? 'Paused' : S.connected ? 'Live' : 'Reconnecting';
-  live.firstChild.style.background = S.paused || !S.connected ? 'var(--ink-muted)' : 'var(--accent)';
-  $('pause').textContent = S.paused ? `Resume${S.queue.length ? ` (${S.queue.length})` : ''}` : 'Pause';
+// ---------- routes ----------
+function matcher(path) {
+  const src = path.split('/').map((p) => (p === '*' ? '.*' : p.startsWith(':') ? '[^/]+' : p.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))).join('/');
+  const literal = path.split('/').filter((p) => p && p !== '*' && !p.startsWith(':')).length;
+  return { re: new RegExp(`^${src}/?$`), score: literal * 10 - (path.includes('*') ? 5 : 0) };
+}
+const routeKey = (r) => (r ? `${r.method} ${r.path}` : null);
+// The route a request group answers to (by its label, "GET /v1/episodes"), the most specific one.
+function routeOf(g) {
+  if (!S.routes || g.kind !== 'request' || !g.label) return null;
+  if (g.routeOf !== undefined && g.routeOfN === S.routes.length) return g.routeOf;
+  const [method, path] = g.label.split(' ');
+  let best = null, score = -Infinity;
+  for (const r of S.routes) {
+    if (r.method !== 'ANY' && r.method !== method && !(r.method === 'GET' && method === 'HEAD')) continue;
+    if (!r.m) r.m = matcher(r.path);
+    if (r.m.re.test((path || '').split('?')[0]) && r.m.score + (r.method === 'ANY' ? 0 : 1) > score) { best = r; score = r.m.score + (r.method === 'ANY' ? 0 : 1); }
+  }
+  g.routeOf = best; g.routeOfN = S.routes.length;
+  return best;
+}
+async function loadRoutes(projectId) {
+  S.routes = null; S.routesFor = projectId;
+  if (!projectId) return;
+  try {
+    const { routes } = await api(`/api/projects/${encodeURIComponent(projectId)}/routes`);
+    if (S.routesFor === projectId) { S.routes = routes; render(); }
+  } catch { /* no routes */ }
+}
 
-  // Nav
+// ---------- the page's API (project picker, sessions) ----------
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { 'content-type': 'application/json', 'x-repo-trace': '1', ...(opts.headers || {}) } });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+function ago(t) {
+  const m = Math.round((Date.now() - t) / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m} min ago`;
+  const hr = Math.round(m / 60);
+  if (hr < 48) return `${hr} h ago`;
+  return new Date(t).toLocaleDateString([], { day: 'numeric', month: 'short' });
+}
+const P = { step: 'pick', projects: null, root: null, project: null, mode: 'local', who: null, routes: null, busy: false, error: null };
+async function loadProjects() {
+  try {
+    const d = await api('/api/projects');
+    P.projects = d.projects; P.root = d.root;
+  } catch (e) { P.error = e.message; P.projects = []; }
+  render();
+}
+async function pickProject(p) {
+  P.project = p; P.step = 'mode'; P.routes = null; P.who = null; P.error = null;
+  render();
+  try { const { routes } = await api(`/api/projects/${encodeURIComponent(p.id)}/routes`); if (P.project === p) { P.routes = routes; render(); } } catch { /* none */ }
+  if (P.mode === 'production') checkWho();
+}
+async function checkWho() {
+  const p = P.project;
+  if (!p || P.who?.for === p.id) return;
+  P.who = { for: p.id, checking: true }; render();
+  try { const w = await api(`/api/projects/${encodeURIComponent(p.id)}/whoami`); if (P.project === p) P.who = { for: p.id, ...w }; }
+  catch { P.who = { for: p.id, signedIn: false, error: 'Couldn\'t check' }; }
+  render();
+}
+async function signIn() {
+  P.who = { for: P.project.id, checking: true, signingIn: true }; render();
+  try { const w = await api('/api/login', { method: 'POST', body: JSON.stringify({ project: P.project.id }) }); P.who = { for: P.project.id, ...w }; }
+  catch (e) { P.who = { for: P.project.id, signedIn: false, error: e.message }; }
+  render();
+}
+async function startSession() {
+  P.busy = true; P.error = null; render();
+  try {
+    await api('/api/session', { method: 'POST', body: JSON.stringify({ project: P.project.id, mode: P.mode }) });
+    S.forcePicker = false; S.view = 'calls'; S.filter = 'all'; S.follow = true;
+  } catch (e) { P.error = e.message; }
+  P.busy = false; render();
+}
+
+function drawPicker() {
+  const el = $('picker');
+  $('title').textContent = P.step === 'pick' ? 'Pick a project' : P.project.label;
+  $('summary').textContent = P.step === 'pick' ? (P.root ? `Workers in ${P.root}` : '') : P.project.worker;
+  if (P.step === 'pick') {
+    if (!P.projects) { el.replaceChildren(h('div', { class: 'card', style: { padding: '16px' } }, h('span', { class: 'muted' }, 'Looking for projects…'))); return; }
+    if (!P.projects.length) {
+      el.replaceChildren(h('div', { class: 'card empty' }, h('h2', {}, 'No project with a Worker here'),
+        h('p', { class: 'muted', style: { margin: 0 } }, `Repo Trace looks for wrangler.jsonc, wrangler.json or wrangler.toml up to two folders inside ${P.root}. Open it on another folder: trace ~/path/to/folder`)));
+      return;
+    }
+    el.replaceChildren(h('div', { class: 'picker' }, h('div', { class: 'card plist', role: 'list' },
+      ...P.projects.map((p) => h('button', { class: 'prow', type: 'button', role: 'listitem', onclick: () => pickProject(p) },
+        h('b', {}, p.label), h('span', { class: 'small muted', style: { textAlign: 'right' } }, ago(p.changed)),
+        h('span', { class: 'small muted' }, `${p.worker} · ${p.main}`),
+        h('span', { class: 'small muted', style: { textAlign: 'right' } }, `${p.routes} ${plural('route', p.routes)}`))))));
+    return;
+  }
+  const p = P.project;
+  const option = (mode, title, text, extra) => h('button', {
+    class: 'option', type: 'button', 'aria-pressed': String(P.mode === mode),
+    onclick: () => { P.mode = mode; if (mode === 'production') checkWho(); render(); },
+  }, h('b', {}, title), h('span', { class: 'small muted' }, text), extra || null);
+  const w = P.who;
+  const who = P.mode !== 'production' ? null
+    : !w || w.checking ? h('span', { class: 'small muted' }, w?.signingIn ? 'Finish signing in in the browser window that opened' : 'Checking your Cloudflare sign-in…')
+    : w.signedIn ? h('span', { class: 'small', style: { color: 'var(--mint-ink)' } }, w.email ? `Signed in to Cloudflare as ${w.email}` : 'Signed in to Cloudflare')
+    : h('div', { style: { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' } },
+        h('span', { class: 'small', style: { color: 'var(--danger)' } }, w.error || 'Not signed in to Cloudflare'),
+        h('button', { class: 'btn', type: 'button', onclick: signIn }, 'Sign in to Cloudflare'));
+  const blocked = P.busy || (P.mode === 'production' && !(w && w.signedIn));
+  const routes = P.routes;
+  el.replaceChildren(h('div', { class: 'picker' },
+    h('div', { class: 'card', style: { flex: '999 1 520px', minWidth: 0 } },
+      h('button', { class: 'linkbtn', type: 'button', onclick: () => { P.step = 'pick'; render(); } }, '← All projects'),
+      h('h2', {}, 'How do you want to watch it?'),
+      h('div', { class: 'modes' },
+        option('local', 'Run it locally', `Starts wrangler dev in ${p.label}. Call it from your app or with curl: each request shows up as it happens.`),
+        option('production', 'Watch production', `Follows ${p.worker} on Cloudflare with wrangler tail: every request it gets, as it happens.`)),
+      who,
+      P.error ? h('span', { class: 'small', style: { color: 'var(--danger)' } }, P.error) : null,
+      h('div', {}, h('button', { class: 'btn primary', type: 'button', disabled: blocked || null, onclick: startSession }, P.busy ? 'Starting…' : 'Start'))),
+    h('div', { class: 'card rlist' },
+      h('h2', {}, routes ? `${routes.length} ${plural('route', routes.length)}` : 'Routes'),
+      h('span', { class: 'small muted' }, 'Read from the code, so some may be missing.'),
+      ...(routes || []).map((r) => h('div', { class: 'route' },
+        h('span', { class: 'method', style: methodStyle(r.method) }, r.method),
+        pathEl(r.path),
+        h('span', { class: 'small muted' }, r.assets ? 'static files' : `${r.file}:${r.line}`))))));
+}
+// A path that breaks after its slashes, not inside a word.
+function pathEl(path) {
+  const parts = path.split('/');
+  return h('span', { class: 'path' }, ...parts.flatMap((p, i) => (i === 0 ? [p] : [h('wbr'), '/' + p])));
+}
+function methodStyle(m) {
+  const t = { GET: 'sky', POST: 'mint', PUT: 'sun', PATCH: 'sun', DELETE: 'rose', ANY: 'lilac', HEAD: 'sky', OPTIONS: 'lilac' }[m] || 'lilac';
+  return { '--tb': `var(--${t})`, '--ti': `var(--${t}-ink)` };
+}
+
+function drawRoutes() {
+  const el = $('routes');
+  const stats = new Map();
+  const unmatched = new Map();
+  for (const g of S.groups.values()) {
+    if (g.kind !== 'request') continue;
+    const r = routeOf(g);
+    const span = g.spans.get(g.id) || [...g.spans.values()][0];
+    if (!r) { unmatched.set(g.label, (unmatched.get(g.label) || 0) + 1); continue; }
+    const k = routeKey(r);
+    const st = stats.get(k) || { n: 0, last: null };
+    st.n++;
+    if (!st.last || g.first > st.last.first) st.last = { first: g.first, status: span?.status, ms: span && span.end != null ? span.end - span.start : null, ok: span?.ok };
+    stats.set(k, st);
+  }
+  const rows = (S.routes || []).map((r) => {
+    const st = stats.get(routeKey(r));
+    return h('button', {
+      class: 'rrow' + (st ? '' : ' idle'), type: 'button', 'aria-selected': String(S.filter === 'route:' + routeKey(r)),
+      onclick: () => { S.filter = 'route:' + routeKey(r); S.view = 'calls'; S.follow = true; render(); },
+    },
+      h('span', {}, h('span', { class: 'method', style: methodStyle(r.method) }, r.method)),
+      pathEl(r.path),
+      h('span', {}, st ? st.n : '·'),
+      h('span', { style: { color: st?.last?.ok === false ? 'var(--danger)' : 'inherit' } }, st?.last?.status ?? ''),
+      h('span', { class: 'c-took' }, st?.last ? dur(st.last.ms) : ''),
+      h('span', { class: 'small muted c-where' }, r.assets ? 'static files' : `${r.file}:${r.line}`));
+  });
+  el.replaceChildren(
+    h('div', { class: 'rrow head meta' }, h('span', {}, 'Method'), h('span', {}, 'Path'), h('span', {}, 'Calls'), h('span', {}, 'Last'), h('span', { class: 'c-took' }, 'Took'), h('span', { class: 'c-where' }, 'In the code')),
+    ...(S.routes ? rows : [h('div', { style: { padding: '12px 16px' }, class: 'muted' }, 'No routes found for this project.')]),
+    unmatched.size ? h('div', { style: { padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: '4px' } },
+      h('span', { class: 'meta' }, 'Called, but not found in the code'),
+      ...[...unmatched.entries()].map(([label, n]) => h('span', { class: 'small' }, `${label} · ${n}`))) : null);
+}
+
+function drawOutput() {
+  const el = $('output');
+  const stick = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;
+  el.textContent = S.output.length ? S.output.join('\n') : 'Nothing yet.';
+  if (stick) el.scrollTop = el.scrollHeight;
+}
+
+const SECTIONS = ['notice', 'picker', 'routes', 'output-card', 'empty', 'groups', 'pair'];
+function show(...ids) { for (const id of SECTIONS) $(id).hidden = !ids.includes(id); }
+
+function draw() {
+  const src = S.source || {};
+  const serve = src.mode === 'serve';
+  const ses = S.session;
+  const picking = serve && (!ses || S.forcePicker);
+
+  // Source, in the sidebar: the project and how it's watched.
+  const mode = serve ? (ses ? ses.mode : null) : src.mode;
+  const status = ses ? { starting: 'Starting', running: 'Running', stopped: 'Stopped', failed: 'Stopped' }[ses.status] : null;
+  $('src-meta').textContent = serve ? 'Project' : 'Source';
+  $('src-name').hidden = !(serve && ses);
+  $('src-name').textContent = ses ? ses.label : '';
+  $('src-mode').textContent = picking && !ses ? 'None yet'
+    : `${mode === 'production' ? 'Production' : mode === 'demo' ? 'Demo' : mode === 'local' ? 'Local' : 'Connecting'}${status ? ' · ' + status : ''}`;
+  $('src-px').style.background = ses && ses.status !== 'running' ? 'var(--ink-muted)' : mode === 'production' ? 'var(--danger)' : 'var(--accent)';
+  $('src-label').textContent = serve ? (ses ? (ses.mode === 'local' ? (ses.url || 'wrangler dev') : `wrangler tail · ${ses.worker}`) : '') : (src.label || '');
+  $('src-actions').hidden = !serve || !ses;
+  $('stop').hidden = !ses || !['starting', 'running'].includes(ses.status);
+  $('change').textContent = picking ? 'Back' : 'Change project';
+
+  const live = $('live');
+  const off = S.paused || !S.connected || (ses && ses.status !== 'running');
+  live.lastChild.textContent = S.paused ? 'Paused' : !S.connected ? 'Reconnecting' : ses && ses.status === 'starting' ? 'Starting' : ses && ses.status !== 'running' ? 'Stopped' : 'Live';
+  live.firstChild.style.background = off ? 'var(--ink-muted)' : 'var(--accent)';
+  $('pause').textContent = S.paused ? `Resume${S.queue.length ? ` (${S.queue.length})` : ''}` : 'Pause';
+  live.hidden = picking; $('pause').hidden = picking;
+
+  if (picking) {
+    $('nav').replaceChildren();
+    show('picker');
+    document.title = 'Repo Trace';
+    drawPicker();
+    return;
+  }
+
+  // Nav: kinds of group, then the routes and the output.
   const k = kinds();
   const items = [['all', 'All', S.groups.size], ...[...k.entries()].sort((a, b) => b[1] - a[1]).map(([id, n]) => [id, kindLabel(id), n])];
-  if (S.filter !== 'all' && !k.has(S.filter)) S.filter = 'all';
-  $('nav').replaceChildren(...items.map(([id, label, n]) => h('button', {
-    type: 'button', 'aria-current': String(S.filter === id),
-    onclick: () => { S.filter = id; S.follow = true; render(); },
-  }, h('span', {}, label), h('span', {}, n))));
-  const title = items.find((i) => i[0] === S.filter)[1];
+  const routeFilter = S.filter.startsWith('route:') ? S.filter.slice(6) : null;
+  if (S.filter !== 'all' && !routeFilter && !k.has(S.filter)) S.filter = 'all';
+  const navBtn = (current, label, n, onclick) => h('button', { type: 'button', 'aria-current': String(current), onclick }, h('span', {}, label), h('span', {}, n ?? ''));
+  $('nav').replaceChildren(
+    ...items.map(([id, label, n]) => navBtn(S.view === 'calls' && S.filter === id, label, n, () => { S.view = 'calls'; S.filter = id; S.follow = true; render(); })),
+    ...(routeFilter ? [navBtn(S.view === 'calls', routeFilter, null, () => { S.view = 'calls'; render(); })] : []),
+    h('div', { class: 'navsep', 'aria-hidden': 'true' }),
+    navBtn(S.view === 'routes', 'Routes', S.routes ? S.routes.length : null, () => { S.view = 'routes'; render(); }),
+    ...(serve ? [navBtn(S.view === 'output', 'Output', null, () => { S.view = 'output'; render(); })] : []));
+  const title = S.view === 'routes' ? 'Routes' : S.view === 'output' ? 'Output' : routeFilter || items.find((i) => i[0] === S.filter)[1];
   $('title').textContent = title;
   document.title = `Repo Trace · ${title}`;
+
+  // A session that ended: say why, and offer to start it again.
+  const failed = ses && (ses.status === 'failed' || ses.status === 'stopped');
+  $('notice-text').textContent = !failed ? '' : ses.status === 'failed' ? `wrangler stopped: ${ses.message || 'see Output'}` : `Stopped. ${ses.mode === 'local' ? 'wrangler dev' : 'wrangler tail'} isn't running.`;
+  $('notice').style.borderColor = ses && ses.status === 'failed' ? 'var(--danger)' : 'var(--line)';
+  if (S.view === 'routes') { show(...(failed ? ['notice'] : []), 'routes'); $('summary').textContent = 'Read from the code, so some may be missing'; drawRoutes(); return; }
+  if (S.view === 'output') { show(...(failed ? ['notice'] : []), 'output-card'); $('summary').textContent = ses ? `${ses.mode === 'local' ? 'wrangler dev' : 'wrangler tail'} in ${ses.label}` : ''; drawOutput(); return; }
 
   const list = visibleGroups();
   const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
@@ -377,15 +665,22 @@ function draw() {
   const todayCost = today.reduce((a, g) => a + summary(g).cost, 0);
   $('summary').textContent = list.length ? `${today.length} today${todayCost ? ' · ' + usd(todayCost) : ''}` : '';
 
-  $('empty').hidden = S.groups.size > 0;
-  $('groups').hidden = list.length === 0;
-  $('pair').hidden = list.length === 0;
+  show(...(failed ? ['notice'] : []), ...(list.length ? ['groups', 'pair'] : S.groups.size || failed ? [] : ['empty']));
+  if (!S.groups.size) {
+    const lead = $('empty-lead');
+    lead.hidden = !ses;
+    $('empty-title').textContent = ses ? (ses.status === 'starting' ? `Starting ${ses.label}…` : 'Waiting for the first request') : 'Waiting for the first call';
+    if (ses) lead.textContent = ses.mode === 'local'
+      ? `${ses.url ? `Your API is on ${ses.url}.` : 'Your API is starting.'} Call it from your app or with curl, or pick a route in Routes.`
+      : `Watching ${ses.worker} on Cloudflare: requests show up as it gets them.`;
+  }
   if (!list.length) return;
 
   // Which group to show: the one picked, or, when following, the newest running one.
   if (S.follow || !S.groups.has(S.group) || !list.some((g) => g.id === S.group)) {
     const running = list.find((g) => summary(g).running && g.kind !== 'request') || list.find((g) => summary(g).running);
-    const pick = (S.follow && running) || (list.some((g) => g.id === S.group) ? S.groups.get(S.group) : list[0]);
+    // Following: the newest running job (an episode), else the newest request.
+    const pick = (S.follow && (running || list[0])) || (list.some((g) => g.id === S.group) ? S.groups.get(S.group) : list[0]);
     if (pick.id !== S.group) S.span = null;
     S.group = pick.id;
   }
@@ -567,6 +862,19 @@ $('theme').addEventListener('click', () => {
 });
 drawTheme();
 
+// ---------- session buttons ----------
+$('stop').addEventListener('click', () => { api('/api/session', { method: 'DELETE' }).catch(() => {}); });
+$('change').addEventListener('click', () => {
+  S.forcePicker = !S.forcePicker;
+  if (S.forcePicker) { P.step = 'pick'; loadProjects(); }
+  render();
+});
+$('notice-output').addEventListener('click', () => { S.view = 'output'; render(); });
+$('notice-again').addEventListener('click', () => {
+  const ses = S.session;
+  if (ses) api('/api/session', { method: 'POST', body: JSON.stringify({ project: ses.project, mode: ses.mode }) }).catch(() => {});
+});
+
 // ---------- pause ----------
 $('pause').addEventListener('click', () => {
   S.paused = !S.paused;
@@ -576,11 +884,22 @@ $('pause').addEventListener('click', () => {
 
 // ---------- stream ----------
 const es = new EventSource('/events');
+function clearCalls() { S.groups.clear(); S.where.clear(); S.queue = []; S.group = null; S.span = null; }
 es.addEventListener('source', (m) => {
   // A new connection replays everything: start clean.
-  S.groups.clear(); S.where.clear(); S.queue = [];
-  S.source = JSON.parse(m.data); render();
+  clearCalls(); S.output = []; S.session = null;
+  S.source = JSON.parse(m.data);
+  if (S.source.mode === 'serve') loadProjects();
+  else if (S.source.project) loadRoutes(S.source.project.id);
+  render();
 });
+es.addEventListener('session', (m) => {
+  const ses = JSON.parse(m.data);
+  if (ses && ses.project !== S.routesFor) loadRoutes(ses.project);
+  S.session = ses; render();
+});
+es.addEventListener('output', (m) => { S.output.push(JSON.parse(m.data)); if (S.output.length > 400) S.output.shift(); if (S.view === 'output') render(); });
+es.addEventListener('reset', () => { clearCalls(); S.output = []; render(); });
 es.onopen = () => { S.connected = true; render(); };
 es.onerror = () => { S.connected = false; render(); };
 es.onmessage = (m) => {

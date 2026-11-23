@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Repo Trace: see your API's calls as a live waterfall, locally and in production.
 //
+//   trace [folder]            pick a project in folder (default: the one repo-trace is in), then run it or watch it
 //   trace dev [args]          run `wrangler dev`, and watch what it logs
-//   trace tail <worker> [args] watch a deployed Worker (`wrangler tail`)
+//   trace tail [worker] [args] watch a deployed Worker (`wrangler tail`)
 //   trace -- <command…>       run any command and watch what it logs
 //   <command> | trace         watch what a command prints
 //   trace demo                sample traffic, to try the viewer
@@ -10,14 +11,23 @@
 // Options: --port <n> (default 4400), --open (open the browser), --show (keep trace lines in the terminal)
 
 import { spawn } from 'node:child_process';
+import { existsSync, statSync } from 'node:fs';
+import { dirname, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { startServer } from '../src/server.mjs';
-import { parseLine, lineSplitter, objectSplitter, fromTail, passThrough } from '../src/parse.mjs';
+import { parseLine, lineSplitter, objectSplitter, fromTail, fromWranglerLine, passThrough } from '../src/parse.mjs';
+import { findProjects } from '../src/projects.mjs';
 import { runDemo } from '../src/demo.mjs';
+
+// Where projects are looked for by default: the folder repo-trace sits in (~/Code), as Repo Atlas does.
+const HOME_FOLDER = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const HELP = `Repo Trace: your API's calls as a live waterfall.
 
-  trace dev [wrangler args]        run wrangler dev and watch it
-  trace tail <worker> [args]       watch a deployed Worker (wrangler tail)
+  trace [folder]                   pick a project, then run it or watch production
+                                   (default folder: the one repo-trace is in)
+  trace dev [wrangler args]        run wrangler dev here and watch it
+  trace tail [worker] [args]       watch a deployed Worker (wrangler tail)
   trace -- <command…>              run any command and watch it
   <command> | trace                watch what a command prints
   trace demo                       sample traffic, to try the viewer
@@ -43,6 +53,10 @@ function parseArgs(argv) {
     opt.rest.push(a);
   }
   return opt;
+}
+
+function isDir(p) {
+  try { return existsSync(p) && statSync(p).isDirectory(); } catch { return false; }
 }
 
 function openBrowser(url) {
@@ -82,23 +96,35 @@ function watchProcess(command, args, { onLine, onObject, show }) {
 
 async function main() {
   const opt = parseArgs(process.argv.slice(2));
-  if (!opt.cmd && process.stdin.isTTY) opt.cmd = 'help';
   if (opt.cmd === 'help') { console.log(HELP); return; }
+  // No command, or a folder: the project picker. (Piped input with no command is read as before.)
+  if ((!opt.cmd && process.stdin.isTTY) || (opt.cmd && opt.cmd !== 'serve' && !['dev', 'tail', 'run', 'demo'].includes(opt.cmd) && isDir(opt.cmd))) {
+    opt.rest = opt.cmd ? [opt.cmd] : [];
+    opt.cmd = 'serve';
+  }
 
   const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
   let source;
-  if (opt.cmd === 'demo') source = { mode: 'demo', label: 'Sample traffic' };
+  // The project in this folder, if it is one: its routes can be listed.
+  const here = ['dev', 'tail', 'run'].includes(opt.cmd) ? (await findProjects(process.cwd())).find((p) => p.dir === process.cwd()) ?? null : null;
+  if (here) {
+    const rel = relative(HOME_FOLDER, here.dir);
+    if (rel && !rel.startsWith('..')) { here.label = rel; here.id = rel.split('/').join('~'); }
+  }
+  if (opt.cmd === 'serve') {
+    const root = resolve(opt.rest[0] || HOME_FOLDER);
+    if (!isDir(root)) { console.error(`trace: no folder at ${root}`); process.exit(1); }
+    source = { mode: 'serve', root, label: root };
+  } else if (opt.cmd === 'demo') source = { mode: 'demo', label: 'Sample traffic' };
   else if (opt.cmd === 'dev') source = { mode: 'local', label: `wrangler dev${opt.rest.length ? ' ' + opt.rest.join(' ') : ''}` };
-  else if (opt.cmd === 'tail') {
-    if (!opt.rest[0]) { console.error('trace: which Worker? trace tail <worker>'); process.exit(1); }
-    source = { mode: 'production', label: `wrangler tail ${opt.rest[0]}` };
-  } else if (opt.cmd === 'run') source = { mode: 'local', label: opt.rest.join(' ') };
+  else if (opt.cmd === 'tail') source = { mode: 'production', label: `wrangler tail${opt.rest.length ? ' ' + opt.rest.join(' ') : here ? ' ' + here.worker : ''}` };
+  else if (opt.cmd === 'run') source = { mode: 'local', label: opt.rest.join(' ') };
   else if (!opt.cmd) source = { mode: 'local', label: 'stdin' };
   else { console.error(`trace: unknown command "${opt.cmd}"\n\n${HELP}`); process.exit(1); }
 
   let viewer;
   try {
-    viewer = await startServer({ port: opt.port, source });
+    viewer = await startServer({ port: opt.port, source, project: here });
   } catch (err) {
     console.error(err.code === 'EADDRINUSE'
       ? `trace: port ${opt.port} is taken. Try --port ${opt.port + 1}`
@@ -109,9 +135,14 @@ async function main() {
   if (opt.open) openBrowser(viewer.url);
 
   const onLine = (line) => { const e = parseLine(line); if (e) viewer.emit(e); return e; };
+  // wrangler dev's own request lines become requests too; they stay in the terminal.
+  const onDevLine = (line) => { const r = fromWranglerLine(line); if (r) r.forEach(viewer.emit); return onLine(line); };
 
-  if (opt.cmd === 'demo') runDemo(viewer.emit);
-  else if (opt.cmd === 'dev') watchProcess(npx, ['wrangler', 'dev', ...opt.rest], { onLine, show: opt.show });
+  if (opt.cmd === 'serve') {
+    if (!opt.open) console.error('trace: open the viewer to pick a project (--open opens it)');
+    for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { viewer.stopAll(); setTimeout(() => process.exit(0), 300); });
+  } else if (opt.cmd === 'demo') runDemo(viewer.emit);
+  else if (opt.cmd === 'dev') watchProcess(npx, ['wrangler', 'dev', '--var', 'TRACE:1', ...opt.rest], { onLine: onDevLine, show: opt.show });
   else if (opt.cmd === 'tail') {
     watchProcess(npx, ['wrangler', 'tail', ...opt.rest, '--format', 'json'], {
       onObject: (ev) => { for (const e of fromTail(ev)) viewer.emit(e); },

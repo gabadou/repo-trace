@@ -17,11 +17,15 @@ Sample traffic shaped like a podcast episode being made: a writer, a fact-check,
 ## Use it
 
 ```sh
-trace dev                  # runs `wrangler dev` and watches it
+trace                      # pick a project, run it locally or watch production
+trace ~/Code               # the same, in another folder
+trace dev                  # runs `wrangler dev` here and watches it
 trace tail my-worker       # watches a deployed Worker (`wrangler tail`)
 trace -- npm run dev       # any command
 npm run dev | trace        # or pipe it
 ```
+
+With no command, Repo Trace lists the projects with a Worker (a `wrangler.jsonc`, `.json` or `.toml`) in the folder it sits in, like Repo Atlas: pick one, choose to run it locally (`wrangler dev`) or watch production (`wrangler tail`, with your Cloudflare sign-in), and requests show up as they happen, with nothing added to the project. Its routes are listed too, read from the code, with how often each was called and its last status.
 
 The viewer is on http://localhost:4400 (`--port` to change, `--open` to open it). It listens on your computer only. The process's output still shows in the terminal, minus the trace lines (`--show` keeps them).
 
@@ -48,7 +52,7 @@ Or print the lines yourself: the format is in [docs/format.md](docs/format.md). 
 console.log(JSON.stringify({ trace: 'span', group: 'ep_1', name: 'write', svc: 'claude', ms: 1200, ok: true }));
 ```
 
-`trace tail` also shows every request the Worker gets, with no logging at all.
+Requests need no logging at all: `wrangler dev` prints a line for each, and `wrangler tail` sends each one. Logging is for what happens inside them.
 
 ## What it doesn't do (yet)
 

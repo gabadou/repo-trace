@@ -1,0 +1,25 @@
+{
+  "name": "trace",
+  "version": "0.1.0",
+  "description": "Your API's calls as a live waterfall, locally and in production. A Studio G tool.",
+  "type": "module",
+  "bin": {
+    "trace": "bin/trace.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "viewer",
+    "lib",
+    "docs"
+  ],
+  "scripts": {
+    "demo": "node bin/trace.mjs demo --open",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "author": "Studio G"
+}

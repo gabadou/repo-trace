@@ -1,10 +1,10 @@
-# Trace
+# Repo Trace
 
 Your API's calls as a live waterfall, locally and in production, instead of scrolling a terminal.
 
-Trace runs your dev server (or watches your deployed Worker), reads the calls it logs and draws them on a page on your computer: one waterfall per job, what ran in parallel, what failed and what took over, and what each call cost.
+Repo Trace runs your dev server (or watches your deployed Worker), reads the calls it logs and draws them on a page on your computer: one waterfall per job, what ran in parallel, what failed and what took over, and what each call cost.
 
-A Studio G tool. Made for Cloudflare Workers first; it reads any process.
+Part of Studio G's Repo tools, with [Repo Atlas](https://github.com/gabadou/repo-atlas): Atlas maps the code, Trace shows what ran. Made for Cloudflare Workers first; it reads any process.
 
 ## Try it
 
@@ -53,11 +53,11 @@ console.log(JSON.stringify({ trace: 'span', group: 'ep_1', name: 'write', svc: '
 ## What it doesn't do (yet)
 
 - Keep history: the viewer holds what it has seen since it started (the last 20,000 lines).
-- Read OpenTelemetry. Cloudflare's own traces (`observability.traces`) cover bindings and fetches in its dashboard; Trace is for seeing your app's own steps, locally and live.
+- Read OpenTelemetry. Cloudflare's own traces (`observability.traces`) cover bindings and fetches in its dashboard; Repo Trace is for seeing your app's own steps, locally and live.
 
 ## Privacy
 
-What your app logs is what Trace shows. In production those lines also go to Cloudflare's logs and to anyone running `wrangler tail`: log names, timings, statuses and costs, never what a user wrote, a prompt or a key.
+What your app logs is what Repo Trace shows. In production those lines also go to Cloudflare's logs and to anyone running `wrangler tail`: log names, timings, statuses and costs, never what a user wrote, a prompt or a key.
 
 ## Develop
 

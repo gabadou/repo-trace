@@ -1,8 +1,8 @@
-// Trace, the app side: one JSON line per call, written with console.log.
+// Repo Trace, the app side: one JSON line per call, written with console.log.
 // No dependencies; works in Cloudflare Workers, Node, Deno and Bun.
-// Copy this file into your app (or import it once Trace is on npm).
+// Copy this file into your app (or import it once Repo Trace is on npm).
 //
-// What you log is what Trace shows, and in production `wrangler tail` sends it
+// What you log is what Repo Trace shows, and in production `wrangler tail` sends it
 // to whoever runs it. Log names, timings, statuses and costs; never what a
 // user wrote, a prompt, a script or a key.
 
@@ -11,6 +11,8 @@ export type Meta = Record<string, string | number | boolean | null>;
 export interface SpanOptions {
   /** What the call belongs to: an episode id, a request id. One waterfall per group. */
   group: string;
+  /** A fixed id, when the same call can be logged twice (a job that runs again from the top). */
+  id?: string;
   /** Who answers: worker, d1, r2, claude, fish, elevenlabs, apple… */
   svc: string;
   /** The id of the span this one is part of. */
@@ -33,9 +35,14 @@ export interface Span {
 
 let on = true;
 
-/** Turns Trace's lines on or off (for example off in production unless asked). */
+/** Turns Repo Trace's lines on or off (for example off in production unless asked). */
 export function traceOn(value: boolean): void {
   on = value;
+}
+
+/** Whether lines are being written: skip work that only feeds the trace when they aren't. */
+export function traceIsOn(): boolean {
+  return on;
 }
 
 function emit(event: Record<string, unknown>): void {
@@ -53,7 +60,7 @@ export function traceGroup(group: string, kind: string, label?: string): void {
 
 /** Times `fn` as one call. Throwing marks it failed, then rethrows. */
 export async function span<T>(name: string, opts: SpanOptions, fn: (s: Span) => Promise<T> | T): Promise<T> {
-  const id = newId();
+  const id = opts.id ?? newId();
   const end: { ok: boolean; usd?: number; status?: number; note?: string; meta?: Meta } = { ok: true };
   const handle: Span = {
     id,

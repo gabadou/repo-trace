@@ -1,6 +1,6 @@
-# Trace
+# Repo Trace
 
-Studio G tool: an API's calls as a live waterfall, locally (`wrangler dev`, any command, stdin) and in production (`wrangler tail`). Owner: Alex. English only. Separate from Repo Atlas on purpose (23 Nov 2026): Atlas maps the code, Trace shows what ran; a link between the two may come later (a call names the file it ran in). Decisions and backlog live in Notion (Studio G › Trace).
+Studio G tool, one of the Repo tools (with Repo Atlas; "Repo" is the suite, 23 Nov 2026): an API's calls as a live waterfall, locally (`wrangler dev`, any command, stdin) and in production (`wrangler tail`). Owner: Alex. English only. Separate from Repo Atlas on purpose (23 Nov 2026): Atlas maps the code, Trace shows what ran; a link between the two may come later (a call names the file it ran in). Decisions and backlog live in Notion (Studio G › Repo trace). The command stays `trace`, the package is `repo-trace`.
 
 ## Layout
 - `bin/trace.mjs`: the command (`dev`, `tail`, `--`, stdin, `demo`).
@@ -15,9 +15,9 @@ Studio G tool: an API's calls as a live waterfall, locally (`wrangler dev`, any 
 - No dependencies, no build step. Node 20+.
 - Studio G design system: tokens copied by hand from `studio-g/design-system/tokens.json` into the viewer's `:root` (Light) and `[data-theme="dark"]` (After hours). No other hex values. Inter, no monospace except the JSON example. Square pixels mark state. One primary action per view.
 - Services get tag colours (fixed for known names, by hash for others), category only. `danger` only for failures, always with words.
-- The accent is Studio G's cobalt as a placeholder: Trace's signature colour is to pick (sun or rose are free).
+- The accent is Studio G's cobalt as a placeholder: Repo Trace's signature colour is to pick (sun or rose are free).
 - Copy: few words, verbs on buttons, no exclamation marks, no emoji, no promises of things that aren't built.
-- Privacy: nothing leaves the computer. Trace shows what the app logs; the docs tell apps never to log user text, prompts or keys.
+- Privacy: nothing leaves the computer. Repo Trace shows what the app logs; the docs tell apps never to log user text, prompts or keys.
 
 ## Check before saying it's done
 - `npm test`

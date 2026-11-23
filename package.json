@@ -1,7 +1,7 @@
 {
-  "name": "trace",
+  "name": "repo-trace",
   "version": "0.1.0",
-  "description": "Your API's calls as a live waterfall, locally and in production. A Studio G tool.",
+  "description": "Your API's calls as a live waterfall, locally and in production. Part of Studio G's Repo tools, with Repo Atlas.",
   "type": "module",
   "bin": {
     "trace": "bin/trace.mjs"

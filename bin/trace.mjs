@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Trace: see your API's calls as a live waterfall, locally and in production.
+// Repo Trace: see your API's calls as a live waterfall, locally and in production.
 //
 //   trace dev [args]          run `wrangler dev`, and watch what it logs
 //   trace tail <worker> [args] watch a deployed Worker (`wrangler tail`)
@@ -14,7 +14,7 @@ import { startServer } from '../src/server.mjs';
 import { parseLine, lineSplitter, objectSplitter, fromTail } from '../src/parse.mjs';
 import { runDemo } from '../src/demo.mjs';
 
-const HELP = `Trace: your API's calls as a live waterfall.
+const HELP = `Repo Trace: your API's calls as a live waterfall.
 
   trace dev [wrangler args]        run wrangler dev and watch it
   trace tail <worker> [args]       watch a deployed Worker (wrangler tail)

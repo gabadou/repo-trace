@@ -1,6 +1,6 @@
 # The format
 
-A call is one line of JSON with a `trace` key, printed by your app (with `console.log`). Trace reads it anywhere on the line, so prefixes and colours added by `wrangler dev` don't matter. Everything else your app prints is left alone.
+A call is one line of JSON with a `trace` key, printed by your app (with `console.log`). Repo Trace reads it anywhere on the line, so prefixes and colours added by `wrangler dev` don't matter. Everything else your app prints is left alone.
 
 `lib/trace.ts` writes these lines for you. This page is for writing them by hand, or from another language.
 

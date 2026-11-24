@@ -46,8 +46,4 @@ A call is one line of JSON with a `trace` key, printed by your app (with `consol
 
 ## What not to log
 
-In production, `wrangler tail` sends these lines to whoever runs it, and Cloudflare keeps Worker logs. Log names, timings, statuses and costs. Never what a user wrote, a prompt, a script, a key or a token. A group's `label` is shown in the list: in production, prefer an id.
-
-## From `wrangler tail`
-
-`trace tail <worker>` also makes a call for every request the Worker gets, without any logging: its method and path (no query string), status, how long it took (`wallTime`, when Cloudflare sends it) and the exception if it threw. Workflow steps and other events without a request show only the lines they log.
+Repo Trace only reads them on your computer, but the same lines end up in Cloudflare's Worker logs if tracing is on in production: keep it off there (with `lib/trace.ts`, call `traceOn(false)` unless a `TRACE` variable says otherwise, as learn.fm does). Log names, timings, statuses and costs. Never what a user wrote, a prompt, a script, a key or a token. A group's `label` is shown in the list: prefer an id.

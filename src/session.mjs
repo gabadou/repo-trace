@@ -1,17 +1,16 @@
-// A session: one project, run locally (wrangler dev) or watched in production (wrangler tail), started and stopped
-// from the page. One at a time.
+// A session: one project, run locally with wrangler dev, started and stopped from the page. One at a time.
 
-import { spawn, execFile } from 'node:child_process';
-import { parseLine, lineSplitter, objectSplitter, fromTail, fromWranglerLine, plain } from './parse.mjs';
+import { spawn } from 'node:child_process';
+import { parseLine, lineSplitter, fromWranglerLine, plain } from './parse.mjs';
 
 const NPX = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
 export function createSessions(hub) {
-  let current = null; // { project, mode, child, status, message, url, startedAt }
+  let current = null; // { project, child, status, message, url, startedAt }
 
   const view = () => current && {
     project: current.project.id, label: current.project.label, worker: current.project.worker,
-    mode: current.mode, status: current.status, message: current.message, url: current.url, startedAt: current.startedAt,
+    status: current.status, message: current.message, url: current.url, startedAt: current.startedAt,
   };
   const set = (patch) => { Object.assign(current, patch); hub.session(view()); };
 
@@ -26,15 +25,13 @@ export function createSessions(hub) {
     set({ status: 'stopped', message: null });
   }
 
-  function start(project, mode) {
+  function start(project) {
     if (current) stop();
     hub.reset();
-    current = { project, mode, status: 'starting', message: null, url: null, startedAt: Date.now() };
+    current = { project, status: 'starting', message: null, url: null, startedAt: Date.now() };
     const s = current;
-    const args = mode === 'production'
-      ? ['wrangler', 'tail', '--format', 'json']
-      // TRACE=1: projects that log their calls (learn.fm) turn the lines on; others ignore it.
-      : ['wrangler', 'dev', '--var', 'TRACE:1'];
+    // TRACE=1: projects that log their calls (learn.fm) turn the lines on; others ignore it.
+    const args = ['wrangler', 'dev', '--var', 'TRACE:1'];
     hub.output(`$ npx ${args.join(' ')}   (in ${project.label})`);
     const child = spawn(NPX, args, {
       cwd: project.dir,
@@ -50,25 +47,19 @@ export function createSessions(hub) {
       if (s !== current) return;
       const e = parseLine(text);
       if (e) { hub.emit(e); return; }
-      const req = mode === 'local' && fromWranglerLine(text);
+      const req = fromWranglerLine(text);
       if (req) { req.forEach(hub.emit); return; }
       if (text.trim()) hub.output(text);
       let m;
-      if (mode === 'local' && (m = text.match(/Ready on (https?:\/\/\S+)/))) set({ status: 'running', url: m[1] });
-      if (mode === 'production' && /Connected to|waiting for logs/i.test(text)) set({ status: 'running' });
+      if ((m = text.match(/Ready on (https?:\/\/\S+)/))) set({ status: 'running', url: m[1] });
       if (/\[ERROR\]|✘/.test(text)) s.lastError = text.replace(/^.*?(?:✘\s*)?\[ERROR\]\s*/, '').replace(/^.*?✘\s*/, '').trim();
     };
 
     for (const stream of [child.stdout, child.stderr]) {
       stream.setEncoding('utf8');
-      if (mode === 'production' && stream === child.stdout) {
-        const read = objectSplitter((ev) => { if (s === current) fromTail(ev).forEach(hub.emit); });
-        stream.on('data', (c) => read.push(c));
-      } else {
-        const lines = lineSplitter(onText);
-        stream.on('data', (c) => lines.push(c));
-        stream.on('end', () => lines.end());
-      }
+      const lines = lineSplitter(onText);
+      stream.on('data', (c) => lines.push(c));
+      stream.on('end', () => lines.end());
     }
     child.on('error', (err) => { if (s === current) set({ status: 'failed', message: `Couldn't run npx: ${err.message}` }); });
     child.on('exit', (code) => {
@@ -86,26 +77,4 @@ function killTree(child, sig) {
     if (process.platform !== 'win32') process.kill(-child.pid, sig);
     else child.kill(sig);
   } catch { /* already gone */ }
-}
-
-/** Who wrangler is signed in as, in that project's folder: { signedIn, email }. */
-export function whoami(dir) {
-  return new Promise((resolve) => {
-    execFile(NPX, ['wrangler', 'whoami'], { cwd: dir, timeout: 30000, env: { ...process.env, FORCE_COLOR: '0', WRANGLER_SEND_METRICS: 'false' } }, (err, out, errOut) => {
-      const text = plain(`${out}\n${errOut}`);
-      if (/not authenticated|wrangler login/i.test(text)) return resolve({ signedIn: false });
-      const email = (text.match(/associated with the email\s+(\S+?)[.!]?\s/i) || [])[1] || null;
-      if (/logged in|associated with/i.test(text)) return resolve({ signedIn: true, email });
-      resolve({ signedIn: false, error: err ? 'Couldn\'t run wrangler whoami' : null });
-    });
-  });
-}
-
-/** Opens Cloudflare's sign-in page in the browser (wrangler login) and waits for it. */
-export function login(dir) {
-  return new Promise((resolve) => {
-    const child = spawn(NPX, ['wrangler', 'login'], { cwd: dir, stdio: 'ignore', env: { ...process.env, WRANGLER_SEND_METRICS: 'false' } });
-    child.on('exit', (code) => resolve(code === 0));
-    child.on('error', () => resolve(false));
-  });
 }

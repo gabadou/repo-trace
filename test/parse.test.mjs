@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseLine, lineSplitter, objectSplitter, fromTail } from '../src/parse.mjs';
+import { parseLine, lineSplitter } from '../src/parse.mjs';
 
 test('a plain trace line', () => {
   const e = parseLine('{"trace":"span","group":"ep_1","name":"write","svc":"claude","ms":1200,"ok":true}');
@@ -30,59 +30,6 @@ test('lines split across chunks', () => {
   s.end('');
   s.end();
   assert.deepEqual(got, ['one', 'two', 'thr']);
-});
-
-test('pretty-printed objects split across chunks', () => {
-  const got = [];
-  const s = objectSplitter((o) => got.push(o));
-  const a = JSON.stringify({ a: 1, s: 'brace } inside "quotes"', n: { b: [1, { c: 2 }] } }, null, 2);
-  const b = JSON.stringify({ z: 'z' });
-  const text = `noise ${a}\n${b}\n`;
-  for (let i = 0; i < text.length; i += 7) s.push(text.slice(i, i + 7));
-  assert.equal(got.length, 2);
-  assert.equal(got[0].s, 'brace } inside "quotes"');
-  assert.equal(got[1].z, 'z');
-});
-
-test('a wrangler tail event gives a request span and its logged calls', () => {
-  const events = fromTail({
-    outcome: 'ok',
-    eventTimestamp: 1795410000000,
-    wallTime: 2300,
-    event: { request: { url: 'https://api.example.com/v1/calls/abc/turns?x=1', method: 'POST' }, response: { status: 200 } },
-    logs: [
-      { message: ['{"trace":"span","group":"g","name":"host turn","svc":"claude","ms":2100,"ok":true}'], level: 'log' },
-      { message: ['plain log'], level: 'log' },
-      { message: [{ trace: 'end', id: 'x', ok: false }], level: 'log' },
-    ],
-    exceptions: [],
-  });
-  assert.equal(events[0].trace, 'group');
-  assert.equal(events[0].label, 'POST /v1/calls/abc/turns');
-  assert.equal(events[1].trace, 'span');
-  assert.equal(events[1].ms, 2300);
-  assert.equal(events[1].ok, true);
-  assert.equal(events[2].name, 'host turn');
-  assert.equal(events[3].ok, false);
-  assert.equal(events.length, 4);
-});
-
-test('a failed invocation is a failed span with the exception', () => {
-  const [, span] = fromTail({
-    outcome: 'exception',
-    eventTimestamp: 1,
-    event: { request: { url: 'https://x.dev/boom', method: 'GET' } },
-    logs: [],
-    exceptions: [{ name: 'TypeError', message: 'x is undefined' }],
-  });
-  assert.equal(span.ok, false);
-  assert.equal(span.note, 'TypeError: x is undefined');
-});
-
-test('a Workflow or cron event without a request gives only its logged calls', () => {
-  const events = fromTail({ outcome: 'ok', eventTimestamp: 1, event: { cron: '* * * * *' }, logs: [{ message: ['{"trace":"group","group":"ep","kind":"episode"}'] }] });
-  assert.equal(events.length, 1);
-  assert.equal(events[0].kind, 'episode');
 });
 
 test('the terminal gets every line but trace lines, partial lines after a pause', async () => {

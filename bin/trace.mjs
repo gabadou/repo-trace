@@ -1,9 +1,8 @@
 #!/usr/bin/env node
-// Repo Trace: see your API's calls as a live waterfall, locally and in production.
+// Repo Trace: see your local API's calls as a live waterfall.
 //
-//   trace [folder]            pick a project in folder (default: the one repo-trace is in), then run it or watch it
+//   trace [folder]            pick a project in folder (default: the one repo-trace is in), then run it
 //   trace dev [args]          run `wrangler dev`, and watch what it logs
-//   trace tail [worker] [args] watch a deployed Worker (`wrangler tail`)
 //   trace -- <command…>       run any command and watch what it logs
 //   <command> | trace         watch what a command prints
 //   trace demo                sample traffic, to try the viewer
@@ -15,7 +14,7 @@ import { existsSync, statSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startServer } from '../src/server.mjs';
-import { parseLine, lineSplitter, objectSplitter, fromTail, fromWranglerLine, passThrough } from '../src/parse.mjs';
+import { parseLine, lineSplitter, fromWranglerLine, passThrough } from '../src/parse.mjs';
 import { findProjects } from '../src/projects.mjs';
 import { runDemo } from '../src/demo.mjs';
 
@@ -24,10 +23,9 @@ const HOME_FOLDER = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
 const HELP = `Repo Trace: your API's calls as a live waterfall.
 
-  trace [folder]                   pick a project, then run it or watch production
+  trace [folder]                   pick a project, then run it
                                    (default folder: the one repo-trace is in)
   trace dev [wrangler args]        run wrangler dev here and watch it
-  trace tail [worker] [args]       watch a deployed Worker (wrangler tail)
   trace -- <command…>              run any command and watch it
   <command> | trace                watch what a command prints
   trace demo                       sample traffic, to try the viewer
@@ -66,21 +64,16 @@ function openBrowser(url) {
 
 // Run a command, show its output unchanged, and read it.
 // Trace lines are kept out of the terminal (the viewer has them) unless show.
-function watchProcess(command, args, { onLine, onObject, show }) {
+function watchProcess(command, args, { onLine, show }) {
   const child = spawn(command, args, {
     stdio: ['inherit', 'pipe', 'pipe'],
     env: { ...process.env, FORCE_COLOR: process.env.FORCE_COLOR ?? '1' },
   });
   for (const [stream, out] of [[child.stdout, process.stdout], [child.stderr, process.stderr]]) {
     stream.setEncoding('utf8');
-    if (onObject && stream === child.stdout) {
-      const read = objectSplitter(onObject);
-      stream.on('data', (chunk) => read.push(chunk));
-    } else {
-      const copy = passThrough(out, onLine || (() => null), { show });
-      stream.on('data', (chunk) => copy.push(chunk));
-      stream.on('end', () => copy.end());
-    }
+    const copy = passThrough(out, onLine || (() => null), { show });
+    stream.on('data', (chunk) => copy.push(chunk));
+    stream.on('end', () => copy.end());
   }
   child.on('error', (err) => {
     console.error(`trace: couldn't run ${command}: ${err.message}`);
@@ -98,7 +91,7 @@ async function main() {
   const opt = parseArgs(process.argv.slice(2));
   if (opt.cmd === 'help') { console.log(HELP); return; }
   // No command, or a folder: the project picker. (Piped input with no command is read as before.)
-  if ((!opt.cmd && process.stdin.isTTY) || (opt.cmd && opt.cmd !== 'serve' && !['dev', 'tail', 'run', 'demo'].includes(opt.cmd) && isDir(opt.cmd))) {
+  if ((!opt.cmd && process.stdin.isTTY) || (opt.cmd && opt.cmd !== 'serve' && !['dev', 'run', 'demo'].includes(opt.cmd) && isDir(opt.cmd))) {
     opt.rest = opt.cmd ? [opt.cmd] : [];
     opt.cmd = 'serve';
   }
@@ -106,7 +99,7 @@ async function main() {
   const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
   let source;
   // The project in this folder, if it is one: its routes can be listed.
-  const here = ['dev', 'tail', 'run'].includes(opt.cmd) ? (await findProjects(process.cwd())).find((p) => p.dir === process.cwd()) ?? null : null;
+  const here = ['dev', 'run'].includes(opt.cmd) ? (await findProjects(process.cwd())).find((p) => p.dir === process.cwd()) ?? null : null;
   if (here) {
     const rel = relative(HOME_FOLDER, here.dir);
     if (rel && !rel.startsWith('..')) { here.label = rel; here.id = rel.split('/').join('~'); }
@@ -117,7 +110,6 @@ async function main() {
     source = { mode: 'serve', root, label: root };
   } else if (opt.cmd === 'demo') source = { mode: 'demo', label: 'Sample traffic' };
   else if (opt.cmd === 'dev') source = { mode: 'local', label: `wrangler dev${opt.rest.length ? ' ' + opt.rest.join(' ') : ''}` };
-  else if (opt.cmd === 'tail') source = { mode: 'production', label: `wrangler tail${opt.rest.length ? ' ' + opt.rest.join(' ') : here ? ' ' + here.worker : ''}` };
   else if (opt.cmd === 'run') source = { mode: 'local', label: opt.rest.join(' ') };
   else if (!opt.cmd) source = { mode: 'local', label: 'stdin' };
   else { console.error(`trace: unknown command "${opt.cmd}"\n\n${HELP}`); process.exit(1); }
@@ -143,11 +135,7 @@ async function main() {
     for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { viewer.stopAll(); setTimeout(() => process.exit(0), 300); });
   } else if (opt.cmd === 'demo') runDemo(viewer.emit);
   else if (opt.cmd === 'dev') watchProcess(npx, ['wrangler', 'dev', '--var', 'TRACE:1', ...opt.rest], { onLine: onDevLine, show: opt.show });
-  else if (opt.cmd === 'tail') {
-    watchProcess(npx, ['wrangler', 'tail', ...opt.rest, '--format', 'json'], {
-      onObject: (ev) => { for (const e of fromTail(ev)) viewer.emit(e); },
-    });
-  } else if (opt.cmd === 'run') watchProcess(opt.rest[0], opt.rest.slice(1), { onLine, show: opt.show });
+  else if (opt.cmd === 'run') watchProcess(opt.rest[0], opt.rest.slice(1), { onLine, show: opt.show });
   else {
     const lines = lineSplitter((line) => { if (!onLine(line) || opt.show) process.stdout.write(line + '\n'); });
     process.stdin.setEncoding('utf8');

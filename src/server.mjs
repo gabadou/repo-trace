@@ -7,7 +7,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { findProjects, findRoutes } from './projects.mjs';
-import { createSessions, whoami, login } from './session.mjs';
+import { createSessions } from './session.mjs';
 
 const PAGE = fileURLToPath(new URL('../viewer/index.html', import.meta.url));
 const KEEP = 20000; // events kept for a page opened late
@@ -97,26 +97,18 @@ export function startServer({ port, source, project = null }) {
         for (const p of list) out.push({ id: p.id, label: p.label, worker: p.worker, main: p.main, changed: p.changed, routes: (await routes(p)).length });
         return json(res, 200, { root: source.root ?? null, projects: out });
       }
-      const pm = path.match(/^\/api\/projects\/([^/]+)\/(routes|whoami)$/);
+      const pm = path.match(/^\/api\/projects\/([^/]+)\/routes$/);
       if (pm) {
         const p = (await projects()).find((x) => x.id === decodeURIComponent(pm[1]));
         if (!p) return json(res, 404, { error: 'Unknown project' });
-        if (pm[2] === 'routes') return json(res, 200, { routes: await routes(p) });
-        return json(res, 200, await whoami(p.dir));
-      }
-      if (path === '/api/login' && req.method === 'POST') {
-        const { project: id } = await body(req);
-        const p = (await projects()).find((x) => x.id === id);
-        if (!p) return json(res, 404, { error: 'Unknown project' });
-        const ok = await login(p.dir);
-        return json(res, 200, ok ? await whoami(p.dir) : { signedIn: false, error: 'Sign-in didn\'t finish' });
+        return json(res, 200, { routes: await routes(p) });
       }
       if (path === '/api/session' && sessions) {
         if (req.method === 'POST') {
-          const { project: id, mode } = await body(req);
+          const { project: id } = await body(req);
           const p = (await projects()).find((x) => x.id === id);
-          if (!p || !['local', 'production'].includes(mode)) return json(res, 400, { error: 'Pick a project and a mode' });
-          return json(res, 200, sessions.start(p, mode));
+          if (!p) return json(res, 400, { error: 'Pick a project' });
+          return json(res, 200, sessions.start(p));
         }
         if (req.method === 'DELETE') { sessions.stop(); return json(res, 200, sessions.view()); }
       }

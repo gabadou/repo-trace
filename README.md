@@ -1,8 +1,8 @@
 # Repo Trace
 
-Your API's calls as a live waterfall, locally and in production, instead of scrolling a terminal.
+Your local API's calls as a live waterfall, instead of scrolling a terminal.
 
-Repo Trace runs your dev server (or watches your deployed Worker), reads the calls it logs and draws them on a page on your computer: one waterfall per job, what ran in parallel, what failed and what took over, and what each call cost.
+Repo Trace runs your dev server, reads the calls it logs and draws them on a page on your computer: one waterfall per job, what ran in parallel, what failed and what took over, and what each call cost.
 
 Part of Studio G's Repo tools, with [Repo Atlas](https://github.com/gabadou/repo-atlas): Atlas maps the code, Trace shows what ran. Made for Cloudflare Workers first; it reads any process.
 
@@ -17,15 +17,14 @@ Sample traffic shaped like a podcast episode being made: a writer, a fact-check,
 ## Use it
 
 ```sh
-trace                      # pick a project, run it locally or watch production
+trace                      # pick a project and run it
 trace ~/Code               # the same, in another folder
 trace dev                  # runs `wrangler dev` here and watches it
-trace tail my-worker       # watches a deployed Worker (`wrangler tail`)
 trace -- npm run dev       # any command
 npm run dev | trace        # or pipe it
 ```
 
-With no command, Repo Trace lists the projects with a Worker (a `wrangler.jsonc`, `.json` or `.toml`) in the folder it sits in, like Repo Atlas: pick one, choose to run it locally (`wrangler dev`) or watch production (`wrangler tail`, with your Cloudflare sign-in), and requests show up as they happen, with nothing added to the project. Its routes are listed too, read from the code, with how often each was called and its last status.
+With no command, Repo Trace lists the projects with a Worker (a `wrangler.jsonc`, `.json` or `.toml`) in the folder it sits in, like Repo Atlas: pick one and Repo Trace runs it (`wrangler dev`): requests show up as they happen, with nothing added to the project. Local only: it never connects to your Cloudflare account. Its routes are listed too, read from the code, with how often each was called and its last status.
 
 The viewer is on http://localhost:4400 (`--port` to change, `--open` to open it). It listens on your computer only. The process's output still shows in the terminal, minus the trace lines (`--show` keeps them).
 
@@ -52,16 +51,17 @@ Or print the lines yourself: the format is in [docs/format.md](docs/format.md). 
 console.log(JSON.stringify({ trace: 'span', group: 'ep_1', name: 'write', svc: 'claude', ms: 1200, ok: true }));
 ```
 
-Requests need no logging at all: `wrangler dev` prints a line for each, and `wrangler tail` sends each one. Logging is for what happens inside them.
+Requests need no logging at all: `wrangler dev` prints a line for each. Logging is for what happens inside them.
 
 ## What it doesn't do (yet)
 
 - Keep history: the viewer holds what it has seen since it started (the last 20,000 lines).
-- Read OpenTelemetry. Cloudflare's own traces (`observability.traces`) cover bindings and fetches in its dashboard; Repo Trace is for seeing your app's own steps, locally and live.
+- Watch production. Repo Trace is for the API running on your computer; Cloudflare's own logs and traces (Workers Observability) cover deployed Workers.
+- Read OpenTelemetry.
 
 ## Privacy
 
-What your app logs is what Repo Trace shows. In production those lines also go to Cloudflare's logs and to anyone running `wrangler tail`: log names, timings, statuses and costs, never what a user wrote, a prompt or a key.
+What your app logs is what Repo Trace shows, and nothing leaves your computer. Your app's logs can still end up in production logs if tracing stays on there: turn it off in production, and log names, timings, statuses and costs, never what a user wrote, a prompt or a key.
 
 ## Develop
 

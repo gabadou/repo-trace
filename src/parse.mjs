@@ -1,12 +1,9 @@
 // Turns what a process prints into Trace events.
 //
-// Two inputs:
-// - lines (wrangler dev, any command, stdin): a trace event is a line holding
-//   one JSON object with a "trace" key, anywhere on the line (wrangler and
-//   other tools may prefix or colour it).
-// - wrangler tail --format json: a stream of JSON objects, one per Worker
-//   invocation, possibly pretty-printed over many lines. Each gives a request
-//   span for free, plus the trace events found in its console logs.
+// Lines (wrangler dev, any command, stdin): a trace event is a line holding
+// one JSON object with a "trace" key, anywhere on the line (wrangler and
+// other tools may prefix or colour it). wrangler dev's own request lines
+// become requests too (fromWranglerLine).
 
 const ANSI = /\x1b\[[0-9;]*[A-Za-z]/g;
 const KINDS = new Set(['start', 'end', 'span', 'group']);
@@ -97,72 +94,6 @@ export function passThrough(out, onLine, { show = false } = {}) {
       if (buf) { const e = onLine(buf); if (!e || show) out.write(buf); buf = ''; }
     },
   };
-}
-
-/** Splits a chunked stream of (pretty-printed) JSON objects. Text between objects is ignored. */
-export function objectSplitter(onObject) {
-  let buf = '', depth = 0, inStr = false, esc = false, start = -1;
-  return {
-    push(chunk) {
-      const from = buf.length;
-      buf += chunk;
-      for (let j = from; j < buf.length; j++) {
-        const c = buf[j];
-        if (start === -1) {
-          if (c === '{') { start = j; depth = 1; inStr = false; esc = false; }
-          continue;
-        }
-        if (inStr) {
-          if (esc) esc = false;
-          else if (c === '\\') esc = true;
-          else if (c === '"') inStr = false;
-          continue;
-        }
-        if (c === '"') inStr = true;
-        else if (c === '{') depth++;
-        else if (c === '}' && --depth === 0) {
-          const text = buf.slice(start, j + 1);
-          start = -1;
-          try { onObject(JSON.parse(text)); } catch { /* not JSON: skip */ }
-        }
-      }
-      // Drop what's been consumed.
-      if (start === -1) buf = '';
-      else if (start > 0) { buf = buf.slice(start); start = 0; }
-    },
-  };
-}
-
-let tailSeq = 0;
-
-/** One wrangler tail event → trace events (a request span, then logged ones). */
-export function fromTail(ev) {
-  const out = [];
-  if (!ev || typeof ev !== 'object') return out;
-  const at = Number(ev.eventTimestamp) || Date.now();
-  const req = ev.event && ev.event.request;
-  if (req && req.url) {
-    let path = req.url;
-    try { path = new URL(req.url).pathname; } catch { /* keep as is */ }
-    const group = `req_${at.toString(36)}_${(tailSeq++).toString(36)}`;
-    const status = ev.event.response && ev.event.response.status;
-    const failed = ev.outcome && ev.outcome !== 'ok';
-    const exc = Array.isArray(ev.exceptions) && ev.exceptions[0];
-    const ms = Number(ev.wallTime) || null;
-    out.push({ trace: 'group', group, kind: 'request', label: `${req.method || 'GET'} ${path}` });
-    out.push({
-      trace: 'span', id: group, group, name: `${req.method || 'GET'} ${path}`, svc: 'worker', at,
-      ms, ok: !(failed || (status && status >= 500)), status: status || null,
-      note: exc ? `${exc.name || 'Error'}: ${String(exc.message || '').slice(0, 200)}` : (failed ? ev.outcome : undefined),
-    });
-  }
-  for (const log of Array.isArray(ev.logs) ? ev.logs : []) {
-    for (const m of Array.isArray(log.message) ? log.message : [log.message]) {
-      const e = typeof m === 'string' ? parseLine(m) : (m && KINDS.has(m.trace) ? m : null);
-      if (e) out.push(e);
-    }
-  }
-  return out;
 }
 
 // wrangler dev prints a line per request (miniflare's entry worker): `GET /v1/episodes 200 OK (38ms)`, after a

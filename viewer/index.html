@@ -145,15 +145,6 @@ dd { margin: 0; overflow-wrap: anywhere; }
 .prow:first-of-type { border-top: 0; }
 .prow:hover { background: var(--surface-2); }
 .prow b { font-weight: 600; }
-.modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.option {
-  display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 10px; border: 1px solid var(--line);
-  background: var(--surface); text-align: left; cursor: pointer;
-}
-.option[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
-.option b { display: flex; align-items: center; gap: 8px; font-weight: 600; }
-.option b::before { content: ""; width: 6px; height: 6px; background: var(--line); }
-.option[aria-pressed="true"] b::before { background: var(--accent); }
 .rlist { flex: 1 1 320px; max-width: 460px; }
 .route { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 5px 0; border-top: 1px solid var(--faint); font-size: 13px; }
 .route .path, .rrow .path { overflow-wrap: break-word; }
@@ -179,7 +170,6 @@ dd { margin: 0; overflow-wrap: anywhere; }
   main { padding: 16px; }
   .grow { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.3fr) 56px 52px; }
   .grow .c-kind, .grow .c-start { display: none; }
-  .modes { grid-template-columns: minmax(0, 1fr); }
   .rtable .rrow { grid-template-columns: 64px minmax(0, 1fr) 48px 56px; }
   .rtable .rrow .c-took, .rtable .rrow .c-where { display: none; }
   .detail { max-width: none; }
@@ -458,7 +448,7 @@ function ago(t) {
   if (hr < 48) return `${hr} h ago`;
   return new Date(t).toLocaleDateString([], { day: 'numeric', month: 'short' });
 }
-const P = { step: 'pick', projects: null, root: null, project: null, mode: 'local', who: null, routes: null, busy: false, error: null };
+const P = { step: 'pick', projects: null, root: null, project: null, routes: null, busy: false, error: null };
 async function loadProjects() {
   try {
     const d = await api('/api/projects');
@@ -467,29 +457,14 @@ async function loadProjects() {
   render();
 }
 async function pickProject(p) {
-  P.project = p; P.step = 'mode'; P.routes = null; P.who = null; P.error = null;
+  P.project = p; P.step = 'project'; P.routes = null; P.error = null;
   render();
   try { const { routes } = await api(`/api/projects/${encodeURIComponent(p.id)}/routes`); if (P.project === p) { P.routes = routes; render(); } } catch { /* none */ }
-  if (P.mode === 'production') checkWho();
-}
-async function checkWho() {
-  const p = P.project;
-  if (!p || P.who?.for === p.id) return;
-  P.who = { for: p.id, checking: true }; render();
-  try { const w = await api(`/api/projects/${encodeURIComponent(p.id)}/whoami`); if (P.project === p) P.who = { for: p.id, ...w }; }
-  catch { P.who = { for: p.id, signedIn: false, error: 'Couldn\'t check' }; }
-  render();
-}
-async function signIn() {
-  P.who = { for: P.project.id, checking: true, signingIn: true }; render();
-  try { const w = await api('/api/login', { method: 'POST', body: JSON.stringify({ project: P.project.id }) }); P.who = { for: P.project.id, ...w }; }
-  catch (e) { P.who = { for: P.project.id, signedIn: false, error: e.message }; }
-  render();
 }
 async function startSession() {
   P.busy = true; P.error = null; render();
   try {
-    await api('/api/session', { method: 'POST', body: JSON.stringify({ project: P.project.id, mode: P.mode }) });
+    await api('/api/session', { method: 'POST', body: JSON.stringify({ project: P.project.id }) });
     S.forcePicker = false; S.view = 'calls'; S.filter = 'all'; S.follow = true;
   } catch (e) { P.error = e.message; }
   P.busy = false; render();
@@ -514,29 +489,14 @@ function drawPicker() {
     return;
   }
   const p = P.project;
-  const option = (mode, title, text, extra) => h('button', {
-    class: 'option', type: 'button', 'aria-pressed': String(P.mode === mode),
-    onclick: () => { P.mode = mode; if (mode === 'production') checkWho(); render(); },
-  }, h('b', {}, title), h('span', { class: 'small muted' }, text), extra || null);
-  const w = P.who;
-  const who = P.mode !== 'production' ? null
-    : !w || w.checking ? h('span', { class: 'small muted' }, w?.signingIn ? 'Finish signing in in the browser window that opened' : 'Checking your Cloudflare sign-in…')
-    : w.signedIn ? h('span', { class: 'small', style: { color: 'var(--mint-ink)' } }, w.email ? `Signed in to Cloudflare as ${w.email}` : 'Signed in to Cloudflare')
-    : h('div', { style: { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' } },
-        h('span', { class: 'small', style: { color: 'var(--danger)' } }, w.error || 'Not signed in to Cloudflare'),
-        h('button', { class: 'btn', type: 'button', onclick: signIn }, 'Sign in to Cloudflare'));
-  const blocked = P.busy || (P.mode === 'production' && !(w && w.signedIn));
   const routes = P.routes;
   el.replaceChildren(h('div', { class: 'picker' },
     h('div', { class: 'card', style: { flex: '999 1 520px', minWidth: 0 } },
       h('button', { class: 'linkbtn', type: 'button', onclick: () => { P.step = 'pick'; render(); } }, '← All projects'),
-      h('h2', {}, 'How do you want to watch it?'),
-      h('div', { class: 'modes' },
-        option('local', 'Run it locally', `Starts wrangler dev in ${p.label}. Call it from your app or with curl: each request shows up as it happens.`),
-        option('production', 'Watch production', `Follows ${p.worker} on Cloudflare with wrangler tail: every request it gets, as it happens.`)),
-      who,
+      h('h2', {}, 'Run it on this computer'),
+      h('span', { class: 'muted' }, `Starts wrangler dev in ${p.label}. Call it from your app or with curl: each request shows up as it happens.`),
       P.error ? h('span', { class: 'small', style: { color: 'var(--danger)' } }, P.error) : null,
-      h('div', {}, h('button', { class: 'btn primary', type: 'button', disabled: blocked || null, onclick: startSession }, P.busy ? 'Starting…' : 'Start'))),
+      h('div', {}, h('button', { class: 'btn primary', type: 'button', disabled: P.busy || null, onclick: startSession }, P.busy ? 'Starting…' : 'Run it'))),
     h('div', { class: 'card rlist' },
       h('h2', {}, routes ? `${routes.length} ${plural('route', routes.length)}` : 'Routes'),
       h('span', { class: 'small muted' }, 'Read from the code, so some may be missing.'),
@@ -608,15 +568,15 @@ function draw() {
   const picking = serve && (!ses || S.forcePicker);
 
   // Source, in the sidebar: the project and how it's watched.
-  const mode = serve ? (ses ? ses.mode : null) : src.mode;
+  const mode = serve ? (ses ? 'local' : null) : src.mode;
   const status = ses ? { starting: 'Starting', running: 'Running', stopped: 'Stopped', failed: 'Stopped' }[ses.status] : null;
   $('src-meta').textContent = serve ? 'Project' : 'Source';
   $('src-name').hidden = !(serve && ses);
   $('src-name').textContent = ses ? ses.label : '';
   $('src-mode').textContent = picking && !ses ? 'None yet'
-    : `${mode === 'production' ? 'Production' : mode === 'demo' ? 'Demo' : mode === 'local' ? 'Local' : 'Connecting'}${status ? ' · ' + status : ''}`;
-  $('src-px').style.background = ses && ses.status !== 'running' ? 'var(--ink-muted)' : mode === 'production' ? 'var(--danger)' : 'var(--accent)';
-  $('src-label').textContent = serve ? (ses ? (ses.mode === 'local' ? (ses.url || 'wrangler dev') : `wrangler tail · ${ses.worker}`) : '') : (src.label || '');
+    : `${mode === 'demo' ? 'Demo' : mode === 'local' ? 'Local' : 'Connecting'}${status ? ' · ' + status : ''}`;
+  $('src-px').style.background = ses && ses.status !== 'running' ? 'var(--ink-muted)' : 'var(--accent)';
+  $('src-label').textContent = serve ? (ses ? (ses.url || 'wrangler dev') : '') : (src.label || '');
   $('src-actions').hidden = !serve || !ses;
   $('stop').hidden = !ses || !['starting', 'running'].includes(ses.status);
   $('change').textContent = picking ? 'Back' : 'Change project';
@@ -654,10 +614,10 @@ function draw() {
 
   // A session that ended: say why, and offer to start it again.
   const failed = ses && (ses.status === 'failed' || ses.status === 'stopped');
-  $('notice-text').textContent = !failed ? '' : ses.status === 'failed' ? `wrangler stopped: ${ses.message || 'see Output'}` : `Stopped. ${ses.mode === 'local' ? 'wrangler dev' : 'wrangler tail'} isn't running.`;
+  $('notice-text').textContent = !failed ? '' : ses.status === 'failed' ? `wrangler stopped: ${ses.message || 'see Output'}` : 'Stopped. wrangler dev isn\'t running.';
   $('notice').style.borderColor = ses && ses.status === 'failed' ? 'var(--danger)' : 'var(--line)';
   if (S.view === 'routes') { show(...(failed ? ['notice'] : []), 'routes'); $('summary').textContent = 'Read from the code, so some may be missing'; drawRoutes(); return; }
-  if (S.view === 'output') { show(...(failed ? ['notice'] : []), 'output-card'); $('summary').textContent = ses ? `${ses.mode === 'local' ? 'wrangler dev' : 'wrangler tail'} in ${ses.label}` : ''; drawOutput(); return; }
+  if (S.view === 'output') { show(...(failed ? ['notice'] : []), 'output-card'); $('summary').textContent = ses ? `wrangler dev in ${ses.label}` : ''; drawOutput(); return; }
 
   const list = visibleGroups();
   const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
@@ -670,9 +630,7 @@ function draw() {
     const lead = $('empty-lead');
     lead.hidden = !ses;
     $('empty-title').textContent = ses ? (ses.status === 'starting' ? `Starting ${ses.label}…` : 'Waiting for the first request') : 'Waiting for the first call';
-    if (ses) lead.textContent = ses.mode === 'local'
-      ? `${ses.url ? `Your API is on ${ses.url}.` : 'Your API is starting.'} Call it from your app or with curl, or pick a route in Routes.`
-      : `Watching ${ses.worker} on Cloudflare: requests show up as it gets them.`;
+    if (ses) lead.textContent = `${ses.url ? `Your API is on ${ses.url}.` : 'Your API is starting.'} Call it from your app or with curl, or pick a route in Routes.`;
   }
   if (!list.length) return;
 
@@ -872,7 +830,7 @@ $('change').addEventListener('click', () => {
 $('notice-output').addEventListener('click', () => { S.view = 'output'; render(); });
 $('notice-again').addEventListener('click', () => {
   const ses = S.session;
-  if (ses) api('/api/session', { method: 'POST', body: JSON.stringify({ project: ses.project, mode: ses.mode }) }).catch(() => {});
+  if (ses) api('/api/session', { method: 'POST', body: JSON.stringify({ project: ses.project }) }).catch(() => {});
 });
 
 // ---------- pause ----------

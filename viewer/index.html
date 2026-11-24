@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Repo Trace</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 rx=%273%27 fill=%27%231a1a1a%27/%3E%3Crect x=%273%27 y=%276%27 width=%276%27 height=%272%27 fill=%27%23fff%27/%3E%3Crect x=%275%27 y=%279%27 width=%278%27 height=%272%27 fill=%27%23fff%27/%3E%3Crect x=%2711%27 y=%273%27 width=%272%27 height=%272%27 fill=%27%237c9bf2%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 rx=%273%27 fill=%27%231a1a1a%27/%3E%3Crect x=%273%27 y=%276%27 width=%276%27 height=%272%27 fill=%27%23fff%27/%3E%3Crect x=%275%27 y=%279%27 width=%278%27 height=%272%27 fill=%27%23fff%27/%3E%3Crect x=%2711%27 y=%273%27 width=%272%27 height=%272%27 fill=%27%23e8b400%27/%3E%3C/svg%3E">
 <script>
   // Theme before paint: the reader's choice, else the system's.
   try {
@@ -18,7 +18,7 @@
 :root {
   --canvas: #ffffff; --dot: #eeeeec; --surface: #ffffff; --surface-2: #f7f7f7; --line: #e6e6e6;
   --ink: #1a1a1a; --ink-muted: #6e6e6e; --ink-inverse: #ffffff;
-  --accent: #1f4fd8; --accent-soft: #e3eafb; --danger: #c23a22;
+  --accent: var(--sun-ink); --accent-soft: var(--sun); --danger: #c23a22;
   --sky: #dcebfc; --sky-ink: #1d4f8c; --lilac: #ece4fb; --lilac-ink: #54348c;
   --rose: #fbe0e6; --rose-ink: #8c2440; --sun: #fcefc7; --sun-ink: #7a5a00; --spark-sun: #e8b400;
   --mint: #d8f2e4; --mint-ink: #1e6b45; --vermilion: #fbe3dc; --vermilion-ink: #a8361c;
@@ -30,7 +30,7 @@
 [data-theme="dark"] {
   --canvas: #131313; --dot: #1f1f1f; --surface: #181818; --surface-2: #1e1e1e; --line: #2c2c2c;
   --ink: #ededed; --ink-muted: #9a9a9a; --ink-inverse: #131313;
-  --accent: #7c9bf2; --accent-soft: #1b2440; --danger: #f2765e;
+  --danger: #f2765e;
   --sky: #16283f; --sky-ink: #8db8ee; --lilac: #2a2140; --lilac-ink: #c3aef2;
   --rose: #3d1c26; --rose-ink: #f09ab1; --sun: #3a3113; --sun-ink: #f2d478; --spark-sun: #e8b400;
   --mint: #15352a; --mint-ink: #7fd6a6; --vermilion: #3d1e16; --vermilion-ink: #f5a08a;
@@ -51,53 +51,82 @@ button { font: inherit; color: inherit; }
 .small { font-size: 12px; line-height: 18px; }
 .px { display: inline-block; width: 6px; height: 6px; flex: none; }
 
-.app { display: flex; flex-wrap: wrap; min-height: 100vh; }
-.side {
-  flex: 1 1 200px; max-width: 220px; background: var(--surface-2); border-right: 1px solid var(--line);
-  padding: 20px 16px; display: flex; flex-direction: column; gap: 28px;
-}
-.mark { display: flex; align-items: flex-start; gap: 3px; font-weight: 600; font-size: 13px; letter-spacing: 0.32em; }
-.mark i { width: 5px; height: 5px; background: var(--accent); margin-top: 1px; }
-.block { display: flex; flex-direction: column; gap: 6px; }
-.mode { align-self: flex-start; display: flex; align-items: center; gap: 6px; font-weight: 500; }
-nav { display: flex; flex-direction: column; gap: 2px; }
-nav button {
-  display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 20px; border: 0; border-radius: 5px;
-  background: transparent; color: var(--ink-muted); text-align: left; cursor: pointer;
-}
-nav button[aria-current="true"] { background: var(--surface); color: var(--ink); font-weight: 500; padding-left: 8px; }
-nav button[aria-current="true"]::before { content: ""; width: 4px; height: 4px; background: var(--accent); }
-nav button span:last-child { margin-left: auto; font-size: 12px; color: var(--ink-muted); font-weight: 400; }
-.side footer { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
-.theme { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 7px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; }
-
-main { flex: 999 1 640px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-header.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-h1 { margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+/* The running view (T1): project and routes, requests, what went wrong. Sun is the accent. */
+.shell { min-height: 100vh; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.cols { flex: 1 1 auto; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 12px; flex-wrap: wrap; }
+.h1 { margin: 0; font-size: 20px; line-height: 26px; font-weight: 600; letter-spacing: -0.01em; }
 h2 { margin: 0; font-size: 16px; line-height: 22px; font-weight: 600; }
-.live { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-muted); }
+h3 { margin: 0; }
 .btn { height: 32px; padding: 0 12px; border-radius: 7px; font-size: 13px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); }
 .btn.primary { border: 0; background: var(--ink); color: var(--ink-inverse); font-weight: 500; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
-
-.groups { overflow: hidden; }
-.groups .scroll { max-height: 232px; overflow-y: auto; }
-.grow {
-  display: grid; grid-template-columns: minmax(0, 2.2fr) 92px 80px minmax(0, 1.6fr) 64px 64px; gap: 12px;
-  padding: 9px 16px; align-items: center; width: 100%; border: 0; border-top: 1px solid var(--faint);
-  background: transparent; text-align: left; cursor: pointer;
-}
-.grow.head { padding: 8px 16px; border-top: 0; border-bottom: 1px solid var(--line); cursor: default; }
-.grow[aria-selected="true"] { background: var(--accent-soft); box-shadow: inset 2px 0 0 var(--accent); }
-.grow .name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.status { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.status span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tag { display: inline-block; font-size: 12px; line-height: 20px; padding: 0 8px; border-radius: 5px; background: var(--tb); color: var(--ti); white-space: nowrap; }
+.mark { display: flex; align-items: flex-start; gap: 3px; font-weight: 600; font-size: 12px; letter-spacing: 0.32em; }
+.mark i { width: 4px; height: 4px; background: var(--spark-sun); margin-top: 1px; }
+.theme { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 7px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; flex: none; }
 
-.pair { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
-.wf { flex: 999 1 600px; min-width: 0; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+/* Left: the project and its routes */
+.side { flex: 1 1 260px; max-width: 300px; padding: 16px; display: flex; flex-direction: column; gap: 16px; position: sticky; top: 16px; max-height: calc(100vh - 96px); overflow-y: auto; }
+.side-head { display: flex; align-items: center; justify-content: space-between; }
+.proj { display: flex; flex-direction: column; gap: 4px; }
+.proj-title { align-self: flex-start; display: flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.proj-title[disabled] { cursor: default; color: inherit; opacity: 1; }
+.state { display: flex; align-items: center; gap: 6px; }
+.proj-actions { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.proj-actions .btn { height: 30px; }
+.routes { border-top: 1px solid var(--line); padding-top: 14px; }
+.routes summary { display: flex; justify-content: space-between; align-items: baseline; cursor: pointer; list-style: none; }
+.routes summary::-webkit-details-marker { display: none; }
+.tree { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; }
+.node { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: calc(100% + 12px); margin: 0 -6px; padding: 4px 6px; border: 0; border-radius: 5px; background: none; text-align: left; font-size: 13px; }
+button.node { cursor: pointer; }
+button.node:hover { background: var(--surface-2); }
+.node[aria-pressed="true"], button.node[aria-pressed="true"]:hover { background: var(--sun); box-shadow: inset 2px 0 0 var(--spark-sun); }
+.nl { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.nl b { font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.node.dir .nl b { font-weight: 600; }
+.node.idle .nl b { color: var(--ink-muted); }
+.heat { width: 5px; height: 5px; flex: none; background: var(--line); }
+.heat.hot1 { background: color-mix(in srgb, var(--spark-sun) 45%, var(--surface)); }
+.heat.hot2 { background: var(--spark-sun); }
+.heat.hot3 { background: var(--sun-ink); }
+.mchips { display: flex; gap: 3px; flex: none; }
+.mchip { font-size: 10px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; padding: 0 5px; border-radius: 4px; background: var(--tb); color: var(--ti); }
+.mchip.idle { background: var(--surface-2); color: var(--ink-muted); }
+.unmatched { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; }
+
+/* Middle: the pulse, the jobs, the selected request */
+.mid { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.pulse-card { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.key { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; }
+.key > span { display: flex; align-items: center; gap: 6px; }
+.key .sq { width: 6px; height: 6px; cursor: default; }
+.pulse { display: grid; grid-template-columns: repeat(60, minmax(0, 1fr)); gap: 3px; height: 52px; align-items: end; }
+.pcol { display: flex; flex-direction: column-reverse; gap: 3px; height: 52px; }
+.sq { display: block; height: 10px; cursor: pointer; background: color-mix(in srgb, var(--ink-muted) 50%, var(--surface)); }
+.sq.c4 { background: transparent; box-shadow: inset 0 0 0 1px var(--ink-muted); }
+.sq.c5 { background: var(--danger); }
+.sq.run { background: transparent; box-shadow: inset 0 0 0 1px var(--spark-sun); }
+.sq.sel { background: var(--spark-sun); box-shadow: 0 0 0 2px var(--sun); }
+.sq.dim { opacity: 0.2; }
+.pulse-axis { display: flex; justify-content: space-between; font-size: 11px; line-height: 16px; }
+.filter-note { display: flex; align-items: baseline; gap: 10px; }
+.jobs { border-top: 1px solid var(--line); padding-top: 10px; display: flex; flex-direction: column; gap: 2px; }
+.job { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) 52px 56px; gap: 12px; align-items: center; width: calc(100% + 12px); margin: 0 -6px; padding: 5px 6px; border: 0; border-radius: 5px; background: none; text-align: left; font-size: 13px; cursor: pointer; }
+.job:hover { background: var(--surface-2); }
+.job[aria-current="true"], .job[aria-current="true"]:hover { background: var(--sun); box-shadow: inset 2px 0 0 var(--spark-sun); }
+.job[aria-current="true"] .muted, .node[aria-pressed="true"] .muted { color: var(--sun-ink); }
+.jl { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.jl b { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job .st { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job .num { text-align: right; }
+
+.wf { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .wf-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.legend { display: flex; gap: 6px; flex-wrap: wrap; }
+.wf-head h2 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; overflow-wrap: break-word; min-width: 0; }
+.wf-nav { display: flex; gap: 14px; flex: none; }
+.wf-nav .linkbtn[disabled] { color: var(--ink-muted); cursor: default; opacity: 0.6; }
 .rows { position: relative; display: flex; flex-direction: column; }
 .wrow {
   display: grid; grid-template-columns: var(--lab) minmax(0, 1fr) 64px; gap: 12px; align-items: center;
@@ -105,10 +134,11 @@ h2 { margin: 0; font-size: 16px; line-height: 22px; font-weight: 600; }
   font-size: 13px; position: relative;
 }
 .wrow.axis { height: 24px; cursor: default; font-size: 11px; color: var(--ink-muted); }
-.wrow[aria-selected="true"] { background: var(--accent-soft); box-shadow: inset 2px 0 0 var(--accent); }
+.wrow[aria-selected="true"] { background: var(--sun); box-shadow: inset 2px 0 0 var(--spark-sun); }
 .wrow .label { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .wrow .label b { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wrow .label small { font-size: 11px; color: var(--ink-muted); white-space: nowrap; }
+.wrow[aria-selected="true"] .label small { color: var(--sun-ink); }
 .wrow .cost { text-align: right; }
 .track { position: relative; height: 16px; display: block; overflow: hidden; }
 .wrow.axis .track { overflow: visible; }
@@ -119,23 +149,35 @@ h2 { margin: 0; font-size: 16px; line-height: 22px; font-weight: 600; }
 .note { position: absolute; top: -1px; font-size: 11px; line-height: 18px; white-space: nowrap; padding: 0 4px; background: var(--surface); color: var(--ink-muted); }
 .note.bad { color: var(--danger); }
 .gridline { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--faint); pointer-events: none; }
-.gridline.now { background: var(--accent); }
+.gridline.now { background: var(--spark-sun); }
 .tick { position: absolute; top: 2px; transform: translateX(-50%); white-space: nowrap; }
-.tick.now { color: var(--accent); font-weight: 500; background: var(--surface); padding: 0 4px; }
+.tick.now { color: var(--sun-ink); font-weight: 500; background: var(--surface); padding: 0 4px; }
 .costs { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
 .costbar { display: flex; height: 8px; gap: 2px; }
 .costbar span { background: var(--ti); }
 
-.detail { flex: 1 1 300px; max-width: 380px; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+/* Right: what went wrong, the selected call */
+.right { flex: 1 1 260px; max-width: 320px; display: flex; flex-direction: column; gap: 12px; position: sticky; top: 16px; }
+.wrong { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.wrong.bad { border-color: var(--danger); }
+.wrong.bad h3 { color: var(--danger); }
+.wrong-title { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.wrong-msg { font-size: 13px; color: var(--danger); overflow-wrap: anywhere; }
+.detail { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.detail h2 { font-size: 18px; line-height: 24px; overflow-wrap: break-word; }
 dl { margin: 0; display: flex; flex-direction: column; }
-dl div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 8px 0; border-top: 1px solid var(--faint); font-size: 13px; }
+dl div { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; padding: 7px 0; border-top: 1px solid var(--faint); font-size: 13px; }
 dt { color: var(--ink-muted); }
 dd { margin: 0; overflow-wrap: anywhere; }
+.incode { padding: 12px; border-radius: 7px; background: var(--surface-2); display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 
-.empty { padding: 32px; display: flex; flex-direction: column; gap: 12px; max-width: 720px; }
+.bottombar { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; padding: 8px 12px; position: sticky; bottom: 12px; }
+.bottombar .btn { height: 30px; }
+
+.empty { padding: 32px; display: flex; flex-direction: column; gap: 12px; }
 .empty pre { margin: 0; font: 12px/18px var(--mono); padding: 12px; background: var(--surface-2); border-radius: 5px; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* Start screen: a folder, then a project */
-body.picking .side, body.picking header.top { display: none; }
+#picker { padding: 24px 16px; }
 .start { width: 100%; max-width: 760px; margin: 16px auto 0; display: flex; flex-direction: column; gap: 16px; }
 .start-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .start-head .mark i { background: var(--spark-sun); }
@@ -164,117 +206,115 @@ body.picking .side, body.picking header.top { display: none; }
 .pick b { font-weight: 600; }
 .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
 .chip { font-size: 11px; line-height: 18px; padding: 0 6px; border-radius: 4px; background: var(--surface); color: var(--ink); box-shadow: inset 2px 0 0 var(--ti); }
-/* Routes, output */
-.rrow .path { overflow-wrap: break-word; }
+/* Output */
 .method { font-size: 11px; line-height: 18px; font-weight: 600; letter-spacing: 0.04em; padding: 0 6px; border-radius: 5px; text-align: center; background: var(--tb); color: var(--ti); }
-.rtable .rrow {
-  display: grid; grid-template-columns: 72px minmax(0, 2fr) 56px 64px 72px minmax(0, 1.4fr); gap: 12px; align-items: center;
-  padding: 8px 16px; border: 0; border-top: 1px solid var(--faint); width: 100%; background: transparent; text-align: left; font-size: 13px; cursor: pointer;
-}
-.rtable .rrow.head { cursor: default; border-top: 0; border-bottom: 1px solid var(--line); }
-.rtable .rrow[aria-selected="true"] { background: var(--accent-soft); box-shadow: inset 2px 0 0 var(--accent); }
-.rtable .rrow.idle { color: var(--ink-muted); }
-.output { padding: 12px 16px; font: 12px/18px var(--mono); max-height: 70vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
-.notice { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-color: var(--danger); }
-.navsep { height: 1px; background: var(--line); margin: 8px 0; }
+.output-card { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.output { font: 12px/18px var(--mono); max-height: 70vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 .linkbtn { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; font-size: 13px; text-align: left; }
 .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
 [hidden] { display: none !important; }
 @media (max-width: 760px) {
   :root { --lab: 128px; }
-  .side { max-width: none; flex-basis: 100%; border-right: 0; border-bottom: 1px solid var(--line); gap: 16px; }
-  nav { flex-direction: row; flex-wrap: wrap; }
-  .side footer { flex-direction: row; align-items: center; }
-  main { padding: 16px; }
-  .grow { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.3fr) 56px 52px; }
-  .grow .c-kind, .grow .c-start { display: none; }
-  .rtable .rrow { grid-template-columns: 64px minmax(0, 1fr) 48px 56px; }
-  .rtable .rrow .c-took, .rtable .rrow .c-where { display: none; }
-  .detail { max-width: none; }
+  .shell { padding: 12px; }
+  .side, .right { max-width: none; flex-basis: 100%; position: static; max-height: none; }
+  .pulse { gap: 2px; }
+  .job { grid-template-columns: minmax(0, 1fr) 52px 56px; }
+  .job .st { display: none; }
+  .bottombar { position: static; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
-<div class="app">
-  <aside class="side">
-    <div class="mark">REPO TRACE<i></i></div>
-    <div class="block" id="src-block">
-      <span class="meta" id="src-meta">Source</span>
-      <span class="mode" id="src-name" hidden></span>
-      <span class="mode"><span class="px" id="src-px"></span><span id="src-mode">Connecting</span></span>
-      <span class="small muted" id="src-label"></span>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px" id="src-actions" hidden>
-        <button class="linkbtn" type="button" id="stop">Stop</button>
-        <button class="linkbtn" type="button" id="change">Change project</button>
+<div class="shell" id="shell">
+  <div class="cols">
+    <aside class="card side" aria-label="Project and routes">
+      <div class="side-head">
+        <div class="mark">REPO TRACE<i></i></div>
+        <button class="theme" id="theme" type="button" aria-label="Switch light or dark mode" title="Switch light or dark mode">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" id="theme-icon"></svg>
+        </button>
       </div>
-    </div>
-    <nav aria-label="What to show" id="nav"></nav>
-    <footer>
-      <button class="theme" id="theme" type="button" aria-label="Switch light or dark mode" title="Switch light or dark mode">
-        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" id="theme-icon"></svg>
-      </button>
-      <span class="small muted">Only on this computer: nothing leaves it.</span>
-    </footer>
-  </aside>
-
-  <main>
-    <header class="top">
-      <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
-        <h1 id="title">All</h1>
-        <span class="small muted" id="summary"></span>
+      <div class="proj">
+        <button class="proj-title" id="proj-title" type="button" title="Change project">
+          <span class="h1" id="proj-name">Repo Trace</span>
+          <svg id="proj-chev" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 5.5 7 9l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span class="small muted state"><span class="px" id="proj-px"></span><span id="proj-text">Connecting</span></span>
+        <div class="proj-actions">
+          <button class="btn" type="button" id="stop" hidden>Stop</button>
+          <button class="btn" type="button" id="restart" hidden>Restart</button>
+          <button class="linkbtn" type="button" id="show-output" hidden>Output</button>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px">
-        <span class="live" id="live"><span class="px"></span><span>Connecting</span></span>
-        <button class="btn" id="pause" type="button">Pause</button>
-      </div>
-    </header>
+      <details class="routes" id="routes-box" open hidden>
+        <summary><h3 class="meta">Routes</h3><span class="small muted" id="routes-count"></span></summary>
+        <ul class="tree" id="tree"></ul>
+        <div class="unmatched" id="unmatched"></div>
+      </details>
+    </aside>
 
-    <section class="card notice" id="notice" hidden>
-      <span id="notice-text"></span>
-      <span style="display:flex;gap:8px">
-        <button class="btn" type="button" id="notice-output">See output</button>
-        <button class="btn primary" type="button" id="notice-again">Start again</button>
-      </span>
-    </section>
+    <main class="mid">
+      <section class="card pulse-card" id="pulse-card" aria-label="Requests" hidden>
+        <div class="card-head">
+          <h2 id="pulse-title"></h2>
+          <span class="small muted key">
+            <span class="filter-note" id="filter-note"></span>
+            <span><span class="sq ok"></span>2xx</span>
+            <span><span class="sq c4"></span>4xx</span>
+            <span><span class="sq c5"></span>5xx</span>
+            <span>Last 5 minutes</span>
+          </span>
+        </div>
+        <div class="pulse" id="pulse" aria-hidden="true"></div>
+        <div class="pulse-axis muted" id="pulse-axis" aria-hidden="true"></div>
+        <div class="jobs" id="jobs" hidden></div>
+      </section>
 
-    <section id="picker" hidden></section>
-
-    <section class="card rtable" id="routes" aria-label="Routes" hidden></section>
-
-    <section class="card" id="output-card" aria-label="Output" hidden>
-      <div class="output" id="output"></div>
-    </section>
-
-    <section class="card empty" id="empty">
-      <h2 id="empty-title">Waiting for the first call</h2>
-      <p style="margin:0" id="empty-lead" hidden></p>
-      <p class="muted" style="margin:0">Repo Trace shows every request, and every line your app prints that is a JSON object with a <b>trace</b> key. To see your own steps and outside calls, log one finished call like this:</p>
-      <pre>console.log(JSON.stringify({ trace: "span", group: "ep_1", name: "write", svc: "claude", ms: 1200, ok: true }))</pre>
-      <p class="muted" style="margin:0">Or a start and an end, to see it while it runs. The whole format is in docs/format.md, and lib/trace.ts writes it for you.</p>
-    </section>
-
-    <section class="card groups" id="groups" aria-label="Groups" hidden>
-      <div class="grow head meta"><span>Name</span><span class="c-kind">Kind</span><span class="c-start">Started</span><span>Status</span><span>Time</span><span>Cost</span></div>
-      <div class="scroll" id="group-rows" role="listbox" aria-label="Groups"></div>
-    </section>
-
-    <div class="pair" id="pair" hidden>
-      <section class="card wf" aria-label="Waterfall">
+      <section class="card wf" id="wf-card" aria-label="The selected request" hidden>
         <div class="wf-head">
           <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
             <h2 id="wf-title"></h2>
             <span class="small muted" id="wf-meta"></span>
           </div>
-          <div class="legend" id="legend"></div>
+          <span class="wf-nav">
+            <button class="linkbtn" type="button" id="prev">← Previous</button>
+            <button class="linkbtn" type="button" id="next">Next →</button>
+            <button class="linkbtn" type="button" id="latest" hidden>Latest</button>
+          </span>
         </div>
         <div class="rows" id="rows"></div>
         <div class="costs" id="costs"></div>
       </section>
-      <aside class="card detail" id="detail" aria-label="Selected call"></aside>
+
+      <section class="card empty" id="empty">
+        <h2 id="empty-title">Waiting for the first call</h2>
+        <p style="margin:0" id="empty-lead" hidden></p>
+        <p class="muted" style="margin:0">Repo Trace shows every request, and every line your app prints that is a JSON object with a <b>trace</b> key. To see your own steps and outside calls, log one finished call like this:</p>
+        <pre>console.log(JSON.stringify({ trace: "span", group: "ep_1", name: "write", svc: "claude", ms: 1200, ok: true }))</pre>
+        <p class="muted" style="margin:0">Or a start and an end, to see it while it runs. The whole format is in docs/format.md, and lib/trace.ts writes it for you.</p>
+      </section>
+
+      <section class="card output-card" id="output-card" aria-label="Output" hidden>
+        <div class="card-head"><h2>Output</h2><button class="linkbtn" type="button" id="hide-output">Back to requests</button></div>
+        <div class="output" id="output"></div>
+      </section>
+    </main>
+
+    <div class="right">
+      <section class="card wrong" id="wrong" aria-label="What went wrong" aria-live="polite"></section>
+      <aside class="card detail" id="detail" aria-label="Selected call" hidden></aside>
     </div>
-  </main>
+  </div>
+
+  <div class="card bottombar">
+    <button class="btn primary" id="pause" type="button">Pause</button>
+    <span class="small muted">Click a square for its request · a route to see only its requests</span>
+    <span class="small muted">Only on this computer</span>
+  </div>
 </div>
+
+<section id="picker" hidden></section>
 
 <script>
 // ---------- helpers ----------
@@ -295,6 +335,8 @@ function h(tag, attrs, ...kids) {
   return el;
 }
 const $ = (id) => document.getElementById(id);
+// replaceChildren, skipping parts left out (null): replaceChildren would write them as "null".
+const fill = (el, ...kids) => el.replaceChildren(...kids.filter((k) => k != null && k !== false));
 function dur(ms) {
   if (ms == null || !isFinite(ms)) return '';
   if (ms < 1000) return Math.round(ms) + ' ms';
@@ -309,8 +351,8 @@ function plural(word, n) { return n === 1 ? word : word + 's'; }
 
 // Each service gets a tag colour: known ones fixed, others by name.
 const KNOWN = { worker: 'sky', cloudflare: 'sky', d1: 'sky', r2: 'sky', kv: 'sky', queue: 'sky', workflow: 'sky',
-  claude: 'lilac', anthropic: 'lilac', fish: 'rose', elevenlabs: 'sun', apple: 'mint', apns: 'mint', openai: 'vermilion' };
-const CYCLE = ['sky', 'lilac', 'rose', 'sun', 'mint', 'vermilion'];
+  claude: 'lilac', anthropic: 'lilac', fish: 'rose', elevenlabs: 'vermilion', apple: 'mint', apns: 'mint', openai: 'vermilion' };
+const CYCLE = ['sky', 'lilac', 'rose', 'mint', 'vermilion']; // not sun: it marks the selection
 function tagOf(svc) {
   const k = String(svc || 'other').toLowerCase();
   if (KNOWN[k]) return KNOWN[k];
@@ -328,7 +370,7 @@ function svcName(svc) {
 const S = {
   groups: new Map(), where: new Map(), source: null, filter: 'all',
   group: null, span: null, follow: true, paused: false, queue: [], connected: false,
-  session: null, forcePicker: false, view: 'calls', output: [], routes: null, routesFor: null,
+  session: null, forcePicker: false, view: 'calls', output: [], routes: null, routesFor: null, pausedAt: 0,
 };
 const MAX_GROUPS = 300;
 
@@ -415,9 +457,9 @@ function kinds() {
 }
 function kindLabel(k) { const n = { episode: 'Episodes', request: 'Requests', calls: 'Other', other: 'Other' }[k]; return n || (k.charAt(0).toUpperCase() + k.slice(1) + 's'); }
 function visibleGroups() {
-  const route = S.filter.startsWith('route:') ? S.filter.slice(6) : null;
+  const path = S.filter.startsWith('path:') ? S.filter.slice(5) : null;
   return [...S.groups.values()]
-    .filter((g) => S.filter === 'all' || g.kind === S.filter || (route && routeKey(routeOf(g)) === route))
+    .filter((g) => !path || (g.kind === 'request' && (routeOf(g) || {}).path === path))
     .sort((a, b) => b.first - a.first);
 }
 
@@ -578,44 +620,210 @@ function pathEl(path) {
   return h('span', { class: 'path' }, ...parts.flatMap((p, i) => (i === 0 ? [p] : [h('wbr'), '/' + p])));
 }
 function methodStyle(m) {
-  const t = { GET: 'sky', POST: 'mint', PUT: 'sun', PATCH: 'sun', DELETE: 'rose', ANY: 'lilac', HEAD: 'sky', OPTIONS: 'lilac' }[m] || 'lilac';
+  const t = { GET: 'sky', POST: 'mint', PUT: 'vermilion', PATCH: 'vermilion', DELETE: 'rose', ANY: 'lilac', HEAD: 'sky', OPTIONS: 'lilac' }[m] || 'lilac';
   return { '--tb': `var(--${t})`, '--ti': `var(--${t}-ink)` };
 }
 
-function drawRoutes() {
-  const el = $('routes');
-  const stats = new Map();
-  const unmatched = new Map();
+// ---------- the routes, as a tree ----------
+const RECENT = 5 * 60e3; // the pulse's window, and what "recent" means for a route's heat
+function routeStats() {
+  const stats = new Map(), unmatched = new Map();
+  const since = Date.now() - RECENT;
   for (const g of S.groups.values()) {
     if (g.kind !== 'request') continue;
     const r = routeOf(g);
-    const span = g.spans.get(g.id) || [...g.spans.values()][0];
-    if (!r) { unmatched.set(g.label, (unmatched.get(g.label) || 0) + 1); continue; }
+    if (!r) { if (S.routes && g.label) unmatched.set(g.label, (unmatched.get(g.label) || 0) + 1); continue; }
     const k = routeKey(r);
-    const st = stats.get(k) || { n: 0, last: null };
+    const st = stats.get(k) || { n: 0, recent: 0 };
     st.n++;
-    if (!st.last || g.first > st.last.first) st.last = { first: g.first, status: span?.status, ms: span && span.end != null ? span.end - span.start : null, ok: span?.ok };
+    if (g.first >= since) st.recent++;
     stats.set(k, st);
   }
-  const rows = (S.routes || []).map((r) => {
-    const st = stats.get(routeKey(r));
-    return h('button', {
-      class: 'rrow' + (st ? '' : ' idle'), type: 'button', 'aria-selected': String(S.filter === 'route:' + routeKey(r)),
-      onclick: () => { S.filter = 'route:' + routeKey(r); S.view = 'calls'; S.follow = true; render(); },
-    },
-      h('span', {}, h('span', { class: 'method', style: methodStyle(r.method) }, r.method)),
-      pathEl(r.path),
-      h('span', {}, st ? st.n : '·'),
-      h('span', { style: { color: st?.last?.ok === false ? 'var(--danger)' : 'inherit' } }, st?.last?.status ?? ''),
-      h('span', { class: 'c-took' }, st?.last ? dur(st.last.ms) : ''),
-      h('span', { class: 'small muted c-where' }, r.assets ? 'static files' : `${r.file}:${r.line}`));
-  });
+  return { stats, unmatched };
+}
+// Routes by path: /v1 → episodes → :id → audio. A folder with one child and no route of its own is folded into it.
+function routeTree(routes) {
+  const root = { seg: '', path: '', kids: new Map(), routes: [] };
+  for (const r of routes) {
+    if (r.assets) continue;
+    let n = root, acc = '';
+    for (const seg of r.path.split('/').filter(Boolean)) {
+      acc += '/' + seg;
+      if (!n.kids.has(seg)) n.kids.set(seg, { seg, path: acc, kids: new Map(), routes: [] });
+      n = n.kids.get(seg);
+    }
+    n.routes.push(r);
+  }
+  const out = [];
+  if (root.routes.length) out.push({ label: '/', depth: 0, node: root });
+  const walk = (n, depth) => {
+    for (const k of n.kids.values()) {
+      let node = k, label = k.seg;
+      while (!node.routes.length && node.kids.size === 1) { node = [...node.kids.values()][0]; label += '/' + node.seg; }
+      out.push({ label: depth === 0 ? '/' + label : label, depth, node });
+      walk(node, depth + 1);
+    }
+  };
+  walk(root, 0);
+  return out;
+}
+function routeRow(label, depth, rs, path, stats) {
+  const recent = rs.reduce((a, r) => a + (stats.get(routeKey(r))?.recent || 0), 0);
+  const called = rs.some((r) => stats.has(routeKey(r)));
+  const heat = recent >= 10 ? ' hot3' : recent >= 3 ? ' hot2' : recent ? ' hot1' : '';
+  const inner = [
+    h('span', { class: 'nl', style: { paddingLeft: `${depth * 14}px` } }, h('span', { class: 'heat' + heat, 'aria-hidden': 'true' }), h('b', {}, label)),
+    h('span', { class: 'mchips' }, ...rs.map((r) => {
+      const n = stats.get(routeKey(r))?.n;
+      return h('span', { class: 'mchip' + (n ? '' : ' idle'), style: n ? methodStyle(r.method) : null }, n ? `${r.method} ${n}` : r.method);
+    })),
+  ];
+  const cls = 'node' + (!rs.length ? ' dir' : called ? '' : ' idle');
+  if (!rs.length) return h('li', {}, h('div', { class: cls }, ...inner));
+  const on = S.filter === 'path:' + path;
+  return h('li', {}, h('button', {
+    class: cls, type: 'button', 'aria-pressed': String(on),
+    title: rs.map((r) => (r.assets ? 'Served from the static files' : `${r.method} ${r.path} · ${r.file}:${r.line}`)).join('\n'),
+    onclick: () => { S.filter = on ? 'all' : 'path:' + path; S.follow = true; S.view = 'calls'; render(); },
+  }, ...inner));
+}
+function drawTree() {
+  const routes = S.routes;
+  $('routes-box').hidden = !routes;
+  if (!routes) return;
+  const { stats, unmatched } = routeStats();
+  const called = routes.filter((r) => stats.has(routeKey(r))).length;
+  $('routes-count').textContent = `${routes.length} · ${called} called`;
+  const rows = routeTree(routes).map(({ label, depth, node }) => routeRow(label, depth, node.routes, node.path, stats));
+  const assets = routes.find((r) => r.assets);
+  if (assets) rows.push(routeRow('Static files', 0, [assets], assets.path, stats));
+  $('tree').replaceChildren(...rows);
+  $('unmatched').replaceChildren(...(unmatched.size ? [
+    h('span', { class: 'meta' }, 'Called, not in the code'),
+    ...[...unmatched.entries()].slice(0, 8).map(([l, n]) => h('span', { class: 'small' }, `${l} · ${n}`)),
+  ] : []));
+}
+
+// ---------- the project, in the left card ----------
+function since(t) {
+  const m = Math.floor((Date.now() - t) / 60000);
+  return m < 1 ? 'just started' : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`;
+}
+function drawSide() {
+  const src = S.source || {}, serve = src.mode === 'serve', ses = S.session;
+  $('proj-name').textContent = ses ? ses.label : src.project ? src.project.label : src.label || 'Repo Trace';
+  $('proj-title').disabled = !serve;
+  $('proj-title').title = serve ? 'Change project' : '';
+  $('proj-chev').style.display = serve ? '' : 'none';
+  let text, px = 'var(--ink-muted)', bad = false;
+  if (!S.connected) text = 'Reconnecting';
+  else if (ses) {
+    if (ses.status === 'starting') text = 'Starting…';
+    else if (ses.status === 'running') { text = `Running on ${(ses.url || 'wrangler dev').replace(/^https?:\/\//, '')} · ${since(ses.startedAt)}`; px = 'var(--spark-sun)'; }
+    else if (ses.status === 'failed') { text = `Stopped: ${ses.message || 'see the output'}`; px = 'var(--danger)'; bad = true; }
+    else text = 'Stopped';
+  } else if (serve) text = 'Not running';
+  else { text = src.mode === 'demo' ? 'Sample traffic, played fast' : `Watching ${src.label}`; px = 'var(--spark-sun)'; }
+  $('proj-text').textContent = text;
+  $('proj-text').style.color = bad ? 'var(--danger)' : '';
+  $('proj-px').style.background = px;
+  const live = ses && ['starting', 'running'].includes(ses.status);
+  $('stop').hidden = !live;
+  $('restart').hidden = !ses;
+  $('restart').textContent = live ? 'Restart' : 'Run again';
+  $('show-output').hidden = !serve || !ses;
+  $('show-output').textContent = S.view === 'output' ? 'Back to requests' : 'Output';
+}
+
+// ---------- the pulse: one square per request, over the last five minutes ----------
+const COLS = 60;
+function requestState(g) {
+  const sp = g.spans.get(g.id) || [...g.spans.values()][0];
+  const status = sp ? sp.status : null;
+  const state = !sp || sp.end == null ? 'run' : sp.ok === false || status >= 500 ? 'c5' : status >= 400 ? 'c4' : 'ok';
+  return { sp, status, state };
+}
+function drawPulse() {
+  const end = S.paused ? S.pausedAt : Date.now(), start = end - RECENT, step = RECENT / COLS;
+  const path = S.filter.startsWith('path:') ? S.filter.slice(5) : null;
+  const all = [...S.groups.values()].filter((g) => g.kind === 'request');
+  const cols = Array.from({ length: COLS }, () => []);
+  for (const g of all) if (g.first >= start && g.first <= end) cols[Math.min(COLS - 1, Math.floor((g.first - start) / step))].push(g);
+  $('pulse').replaceChildren(...cols.map((c) => {
+    c.sort((a, b) => a.first - b.first);
+    const shown = c.slice(-4);
+    return h('span', { class: 'pcol' }, ...shown.map((g, i) => {
+      const { status, state } = requestState(g);
+      const dim = path && (routeOf(g) || {}).path !== path;
+      const more = i === 0 && c.length > 4 ? ` (and ${c.length - 4} more here)` : '';
+      return h('span', {
+        class: `sq ${state}${g.id === S.group ? ' sel' : ''}${dim ? ' dim' : ''}`,
+        title: `${g.label || g.id} · ${status ?? 'running'} · ${clock(g.first)}${more}`,
+        onclick: () => { S.group = g.id; S.span = null; S.follow = false; render(); },
+      });
+    }));
+  }));
+  const hm = (t) => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  $('pulse-axis').replaceChildren(h('span', {}, hm(start)), h('span', {}, hm(start + RECENT / 2)), h('span', {}, S.paused ? hm(end) : 'now'));
+  const n = all.length;
+  const m = path ? all.filter((g) => (routeOf(g) || {}).path === path).length : n;
+  $('pulse-title').textContent = path ? `${m} of ${n} ${plural('request', n)}` : `${n} ${plural('request', n)}`;
+  $('filter-note').replaceChildren(...(path ? [h('b', { style: { fontWeight: 500, color: 'var(--ink)' } }, path), h('button', { class: 'linkbtn', type: 'button', onclick: () => { S.filter = 'all'; render(); } }, 'Show all')] : []));
+}
+
+// ---------- jobs: groups that aren't requests (an episode, a host turn) ----------
+function pick(g) { S.group = g.id; S.span = null; S.follow = false; S.view = 'calls'; render(); }
+function drawJobs() {
+  const jobs = [...S.groups.values()].filter((g) => g.kind !== 'request').sort((a, b) => b.first - a.first);
+  const el = $('jobs');
+  el.hidden = !jobs.length || S.filter !== 'all';
+  if (el.hidden) return;
   el.replaceChildren(
-    h('div', { class: 'rrow head meta' }, h('span', {}, 'Method'), h('span', {}, 'Path'), h('span', {}, 'Calls'), h('span', {}, 'Last'), h('span', { class: 'c-took' }, 'Took'), h('span', { class: 'c-where' }, 'In the code')),
-    ...(S.routes ? rows : [h('div', { style: { padding: '12px 16px' }, class: 'muted' }, 'No routes found for this project.')]),
-    unmatched.size ? h('div', { style: { padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: '4px' } },
-      h('span', { class: 'meta' }, 'Called, but not found in the code'),
-      ...[...unmatched.entries()].map(([label, n]) => h('span', { class: 'small' }, `${label} · ${n}`))) : null);
+    h('div', { class: 'card-head' }, h('h3', { class: 'meta' }, 'Jobs'), h('span', { class: 'small muted' }, jobs.length > 5 ? `Latest 5 of ${jobs.length}` : '')),
+    ...jobs.slice(0, 5).map((g) => {
+      const sm = summary(g);
+      const color = sm.tone === 'bad' ? 'var(--danger)' : sm.tone === 'run' ? 'var(--spark-sun)' : 'var(--ink-muted)';
+      return h('button', { class: 'job', type: 'button', 'aria-current': String(g.id === S.group), onclick: () => pick(g) },
+        h('span', { class: 'jl' },
+          h('span', { class: 'px', style: { background: color } }),
+          h('b', { title: g.label || g.id }, g.label || g.id),
+          h('span', { class: 'small muted' }, g.kind)),
+        h('span', { class: 'small st' + (sm.tone === 'bad' ? '' : ' muted'), style: sm.tone === 'bad' ? { color: 'var(--danger)' } : null }, sm.status),
+        h('span', { class: 'small num' }, dur(sm.time)),
+        h('span', { class: 'small num' }, usd(sm.cost)));
+    }));
+}
+
+// ---------- what went wrong: the latest failure, always in view ----------
+function failureOf(g) {
+  const spans = [...g.spans.values()];
+  const latestBad = spans.filter((s) => s.ok === false).sort((a, b) => b.end - a.end)[0];
+  if (g.kind === 'request') {
+    const root = g.spans.get(g.id) || spans[0];
+    if (root && root.end != null && (root.ok === false || root.status >= 500)) return { g, span: latestBad || root, status: root.status };
+    return null;
+  }
+  if (summary(g).tone !== 'bad') return null;
+  return { g, span: latestBad, status: latestBad && latestBad.status };
+}
+function drawWrong() {
+  const fails = [...S.groups.values()].map(failureOf).filter(Boolean).sort((a, b) => b.g.last - a.g.last);
+  const el = $('wrong');
+  el.classList.toggle('bad', fails.length > 0);
+  if (!fails.length) {
+    el.replaceChildren(h('h3', { class: 'meta' }, 'What went wrong'), h('span', { class: 'small muted' }, 'Nothing so far.'));
+    return;
+  }
+  const f = fails[0], r = routeOf(f.g), name = f.g.label || f.g.id;
+  const msg = f.span && f.span.note ? f.span.note : f.span && f.span.id !== f.g.id ? `${f.span.name} failed` : null;
+  fill(el,
+    h('div', { class: 'card-head' }, h('h3', { class: 'meta' }, 'What went wrong'),
+      h('span', { class: 'small muted' }, `${fails.length > 1 ? `Latest of ${fails.length} · ` : ''}${ago(f.g.last)}`)),
+    h('span', { class: 'wrong-title' }, f.status ? `${name} · ${f.status}` : name),
+    msg ? h('span', { class: 'wrong-msg' }, msg) : null,
+    r && !r.assets ? h('span', { class: 'small muted' }, `The route: ${r.file}:${r.line}`) : null,
+    h('span', {}, h('button', { class: 'linkbtn', type: 'button', onclick: () => { pick(f.g); S.span = f.span ? f.span.id : null; } },
+      f.g.kind === 'request' ? 'Show the request' : `Show the ${f.g.kind}`)));
 }
 
 function drawOutput() {
@@ -625,110 +833,57 @@ function drawOutput() {
   if (stick) el.scrollTop = el.scrollHeight;
 }
 
-const SECTIONS = ['notice', 'picker', 'routes', 'output-card', 'empty', 'groups', 'pair'];
-function show(...ids) { for (const id of SECTIONS) $(id).hidden = !ids.includes(id); }
-
 function draw() {
   const src = S.source || {};
   const serve = src.mode === 'serve';
   const ses = S.session;
   const picking = serve && (!ses || S.forcePicker);
-
-  // Source, in the sidebar: the project and how it's watched.
-  const mode = serve ? (ses ? 'local' : null) : src.mode;
-  const status = ses ? { starting: 'Starting', running: 'Running', stopped: 'Stopped', failed: 'Stopped' }[ses.status] : null;
-  $('src-meta').textContent = serve ? 'Project' : 'Source';
-  $('src-name').hidden = !(serve && ses);
-  $('src-name').textContent = ses ? ses.label : '';
-  $('src-mode').textContent = picking && !ses ? 'None yet'
-    : `${mode === 'demo' ? 'Demo' : mode === 'local' ? 'Local' : 'Connecting'}${status ? ' · ' + status : ''}`;
-  $('src-px').style.background = ses && ses.status !== 'running' ? 'var(--ink-muted)' : 'var(--accent)';
-  $('src-label').textContent = serve ? (ses ? (ses.url || 'wrangler dev') : '') : (src.label || '');
-  $('src-actions').hidden = !serve || !ses;
-  $('stop').hidden = !ses || !['starting', 'running'].includes(ses.status);
-  $('change').textContent = picking ? 'Back' : 'Change project';
-
-  const live = $('live');
-  const off = S.paused || !S.connected || (ses && ses.status !== 'running');
-  live.lastChild.textContent = S.paused ? 'Paused' : !S.connected ? 'Reconnecting' : ses && ses.status === 'starting' ? 'Starting' : ses && ses.status !== 'running' ? 'Stopped' : 'Live';
-  live.firstChild.style.background = off ? 'var(--ink-muted)' : 'var(--accent)';
-  $('pause').textContent = S.paused ? `Resume${S.queue.length ? ` (${S.queue.length})` : ''}` : 'Pause';
-  live.hidden = picking; $('pause').hidden = picking;
-
   document.body.classList.toggle('picking', picking);
-  if (picking) {
-    $('nav').replaceChildren();
-    show('picker');
-    document.title = 'Repo Trace';
-    drawPicker();
-    return;
-  }
+  $('shell').hidden = picking;
+  $('picker').hidden = !picking;
+  if (picking) { document.title = 'Repo Trace'; drawPicker(); return; }
 
-  // Nav: kinds of group, then the routes and the output.
-  const k = kinds();
-  const items = [['all', 'All', S.groups.size], ...[...k.entries()].sort((a, b) => b[1] - a[1]).map(([id, n]) => [id, kindLabel(id), n])];
-  const routeFilter = S.filter.startsWith('route:') ? S.filter.slice(6) : null;
-  if (S.filter !== 'all' && !routeFilter && !k.has(S.filter)) S.filter = 'all';
-  const navBtn = (current, label, n, onclick) => h('button', { type: 'button', 'aria-current': String(current), onclick }, h('span', {}, label), h('span', {}, n ?? ''));
-  $('nav').replaceChildren(
-    ...items.map(([id, label, n]) => navBtn(S.view === 'calls' && S.filter === id, label, n, () => { S.view = 'calls'; S.filter = id; S.follow = true; render(); })),
-    ...(routeFilter ? [navBtn(S.view === 'calls', routeFilter, null, () => { S.view = 'calls'; render(); })] : []),
-    h('div', { class: 'navsep', 'aria-hidden': 'true' }),
-    navBtn(S.view === 'routes', 'Routes', S.routes ? S.routes.length : null, () => { S.view = 'routes'; render(); }),
-    ...(serve ? [navBtn(S.view === 'output', 'Output', null, () => { S.view = 'output'; render(); })] : []));
-  const title = S.view === 'routes' ? 'Routes' : S.view === 'output' ? 'Output' : routeFilter || items.find((i) => i[0] === S.filter)[1];
-  $('title').textContent = title;
-  document.title = `Repo Trace · ${title}`;
+  drawSide();
+  drawTree();
+  drawWrong();
+  $('pause').textContent = S.paused ? `Resume${S.queue.length ? ` (${S.queue.length})` : ''}` : 'Pause';
+  document.title = `Repo Trace · ${$('proj-name').textContent}`;
 
-  // A session that ended: say why, and offer to start it again.
-  const failed = ses && (ses.status === 'failed' || ses.status === 'stopped');
-  $('notice-text').textContent = !failed ? '' : ses.status === 'failed' ? `wrangler stopped: ${ses.message || 'see Output'}` : 'Stopped. wrangler dev isn\'t running.';
-  $('notice').style.borderColor = ses && ses.status === 'failed' ? 'var(--danger)' : 'var(--line)';
-  if (S.view === 'routes') { show(...(failed ? ['notice'] : []), 'routes'); $('summary').textContent = 'Read from the code, so some may be missing'; drawRoutes(); return; }
-  if (S.view === 'output') { show(...(failed ? ['notice'] : []), 'output-card'); $('summary').textContent = ses ? `wrangler dev in ${ses.label}` : ''; drawOutput(); return; }
-
+  const output = S.view === 'output';
+  const any = S.groups.size > 0;
   const list = visibleGroups();
-  const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
-  const today = list.filter((g) => g.first >= midnight.getTime());
-  const todayCost = today.reduce((a, g) => a + summary(g).cost, 0);
-  $('summary').textContent = list.length ? `${today.length} today${todayCost ? ' · ' + usd(todayCost) : ''}` : '';
-
-  show(...(failed ? ['notice'] : []), ...(list.length ? ['groups', 'pair'] : S.groups.size || failed ? [] : ['empty']));
-  if (!S.groups.size) {
+  $('output-card').hidden = !output;
+  $('pulse-card').hidden = output || !any;
+  $('empty').hidden = output || any;
+  $('wf-card').hidden = output || !list.length;
+  $('detail').hidden = output || !list.length;
+  if (output) { drawOutput(); return; }
+  if (!any) {
+    const down = ses && ['stopped', 'failed'].includes(ses.status);
+    $('empty-title').textContent = !ses ? 'Waiting for the first call' : down ? `${ses.label} isn't running` : ses.status === 'starting' ? `Starting ${ses.label}…` : 'Waiting for the first request';
     const lead = $('empty-lead');
     lead.hidden = !ses;
-    $('empty-title').textContent = ses ? (ses.status === 'starting' ? `Starting ${ses.label}…` : 'Waiting for the first request') : 'Waiting for the first call';
-    if (ses) lead.textContent = `${ses.url ? `Your API is on ${ses.url}.` : 'Your API is starting.'} Call it from your app or with curl, or pick a route in Routes.`;
+    if (ses) lead.textContent = down ? 'Run it again from the left. Output has what wrangler printed.'
+      : `${ses.url ? `Your API is on ${ses.url}.` : 'Your API is starting.'} Call it from your app or with curl: each request shows up here.`;
+    return;
   }
+  drawPulse();
+  drawJobs();
   if (!list.length) return;
 
-  // Which group to show: the one picked, or, when following, the newest running one.
-  if (S.follow || !S.groups.has(S.group) || !list.some((g) => g.id === S.group)) {
-    const running = list.find((g) => summary(g).running && g.kind !== 'request') || list.find((g) => summary(g).running);
-    // Following: the newest running job (an episode), else the newest request.
-    const pick = (S.follow && (running || list[0])) || (list.some((g) => g.id === S.group) ? S.groups.get(S.group) : list[0]);
-    if (pick.id !== S.group) S.span = null;
-    S.group = pick.id;
+  // Which group to show: the one picked, or, when following, the newest running job, else the newest group.
+  if (S.follow || !list.some((g) => g.id === S.group)) {
+    const running = list.find((g) => g.kind !== 'request' && summary(g).running);
+    const next = (S.follow && running) || list[0];
+    if (next.id !== S.group) S.span = null;
+    S.group = next.id;
   }
-
-  // Groups
-  $('group-rows').replaceChildren(...list.map((g) => {
-    const sm = summary(g);
-    const color = sm.tone === 'bad' ? 'var(--danger)' : sm.tone === 'run' ? 'var(--accent)' : 'var(--ink)';
-    return h('button', {
-      class: 'grow', type: 'button', role: 'option', 'aria-selected': String(g.id === S.group),
-      onclick: () => { S.group = g.id; S.span = null; S.follow = false; render(); },
-    },
-      h('span', { class: 'name', title: g.label || g.id }, g.label || g.id),
-      h('span', { class: 'c-kind' }, h('span', { class: 'tag', style: { '--tb': 'var(--surface-2)', '--ti': 'var(--ink-muted)' } }, g.kind)),
-      h('span', { class: 'muted c-start' }, clock(g.first)),
-      h('span', { class: 'status', style: { color } }, h('span', { class: 'px', style: { background: color } }), h('span', {}, sm.status)),
-      h('span', {}, dur(sm.time)),
-      h('span', {}, usd(sm.cost)),
-    );
-  }));
-
-  drawWaterfall(S.groups.get(S.group));
+  const g = S.groups.get(S.group);
+  const i = list.indexOf(g);
+  $('prev').disabled = i >= list.length - 1;
+  $('next').disabled = i <= 0;
+  $('latest').hidden = S.follow;
+  drawWaterfall(g);
 }
 
 function ordered(g) {
@@ -777,11 +932,19 @@ function drawWaterfall(g) {
   const pct = (t) => Math.min(Math.max((t - t0) / total * 100, 0), 100);
   const rows = ordered(g);
 
-  $('wf-title').textContent = g.label || g.id;
-  $('wf-meta').textContent = [g.label ? g.id : null, `${rows.length} ${plural('call', rows.length)}`, dur(sm.time), sm.running ? 'running' : null].filter(Boolean).join(' · ');
-
-  const svcs = [...new Set(rows.map((r) => r.s.svc))];
-  $('legend').replaceChildren(...svcs.map((v) => h('span', { class: 'tag', style: tagStyle(v) }, svcName(v))));
+  const root = g.kind === 'request' ? g.spans.get(g.id) : null;
+  const [method, ...rest] = (g.label || '').split(' ');
+  $('wf-title').replaceChildren(...(g.kind === 'request' && rest.length
+    ? [h('span', { class: 'method', style: methodStyle(method) }, method), pathEl(rest.join(' '))]
+    : [h('span', {}, g.label || g.id), h('span', { class: 'small muted', style: { fontWeight: 400 } }, g.kind)]));
+  const inside = root ? rows.length - 1 : rows.length;
+  $('wf-meta').textContent = [
+    root ? (root.status ?? (root.end == null ? 'running' : null)) : (g.label ? g.id : null),
+    dur(sm.time), clock(g.first),
+    inside ? `${inside} ${plural('call', inside)}${root ? ' inside' : ''}` : null,
+    usd(sm.cost) || null,
+    !root && sm.running ? 'running' : null,
+  ].filter((x) => x != null && x !== '').join(' · ');
 
   // Pick the call to detail: the one clicked, else the latest failure, else the latest running one.
   if (!S.span || !g.spans.has(S.span)) {
@@ -850,6 +1013,7 @@ function isUnder(g, s, ancestor) {
 function drawDetail(g, s) {
   const el = $('detail');
   if (!s) { el.replaceChildren(h('span', { class: 'muted' }, 'Pick a call')); return; }
+  const route = g.kind === 'request' ? routeOf(g) : null;
   const state = s.end == null ? ['Running', 'var(--accent)'] : s.ok === false ? ['Failed', 'var(--danger)'] : ['Done', 'var(--mint-ink)'];
   const rows = [
     ['Service', svcName(s.svc)],
@@ -861,12 +1025,13 @@ function drawDetail(g, s) {
     ...Object.entries(s.meta || {}).map(([k, v]) => [k, typeof v === 'object' ? JSON.stringify(v) : String(v)]),
   ].filter(Boolean);
   const copy = JSON.stringify({ group: g.id, ...s, parent: s.parent || undefined }, null, 2);
-  el.replaceChildren(
+  fill(el,
     h('div', { style: { display: 'flex', flexDirection: 'column', gap: '6px' } },
       h('span', { class: 'tag', style: { ...tagStyle(s.svc), alignSelf: 'flex-start' } }, svcName(s.svc)),
-      h('h2', {}, s.name),
+      h('h2', {}, s.name.includes('/') ? pathEl(s.name) : s.name),
       h('span', { style: { fontSize: '13px', color: state[1] } }, state[0])),
     h('dl', {}, ...rows.map(([k, v]) => h('div', {}, h('dt', {}, k), h('dd', {}, v)))),
+    route && !route.assets ? h('section', { class: 'incode' }, h('h3', { class: 'meta' }, 'The route, in the code'), h('span', {}, `${route.method} ${route.path}`), h('span', { class: 'muted' }, `${route.file}:${route.line}`)) : null,
     h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } },
       h('button', { class: 'btn', type: 'button', onclick: (ev) => {
         navigator.clipboard?.writeText(copy).then(() => { ev.target.textContent = 'Copied'; setTimeout(() => { ev.target.textContent = 'Copy as JSON'; }, 1200); });
@@ -889,25 +1054,37 @@ function toggleTheme() {
 $('theme').addEventListener('click', toggleTheme);
 drawTheme();
 
-// ---------- session buttons ----------
+// ---------- buttons ----------
 $('stop').addEventListener('click', () => { api('/api/session', { method: 'DELETE' }).catch(() => {}); });
-$('change').addEventListener('click', () => {
-  S.forcePicker = !S.forcePicker;
-  if (S.forcePicker) loadProjects(P.root, true);
-  render();
-});
-$('notice-output').addEventListener('click', () => { S.view = 'output'; render(); });
-$('notice-again').addEventListener('click', () => {
+$('restart').addEventListener('click', () => {
   const ses = S.session;
   if (ses) api('/api/session', { method: 'POST', body: JSON.stringify({ project: ses.project }) }).catch(() => {});
 });
+$('proj-title').addEventListener('click', () => {
+  if ((S.source || {}).mode !== 'serve') return;
+  S.forcePicker = true; loadProjects(P.root, true); render();
+});
+$('show-output').addEventListener('click', () => { S.view = S.view === 'output' ? 'calls' : 'output'; render(); });
+$('hide-output').addEventListener('click', () => { S.view = 'calls'; render(); });
+function step(by) {
+  const list = visibleGroups();
+  const g = list[list.findIndex((x) => x.id === S.group) + by];
+  if (g) pick(g);
+}
+$('prev').addEventListener('click', () => step(1)); // older
+$('next').addEventListener('click', () => step(-1)); // newer
+$('latest').addEventListener('click', () => { S.follow = true; S.span = null; render(); });
+$('routes-box').open = innerWidth > 760;
 
 // ---------- pause ----------
 $('pause').addEventListener('click', () => {
   S.paused = !S.paused;
-  if (!S.paused) { S.queue.splice(0).forEach(apply); }
+  if (S.paused) S.pausedAt = Date.now();
+  else S.queue.splice(0).forEach(apply);
   render();
 });
+// The pulse moves on, and "Running · 4 min" counts, even without new requests.
+setInterval(() => { if (!S.paused && !document.hidden) render(); }, 5000);
 
 // ---------- stream ----------
 const es = new EventSource('/events');

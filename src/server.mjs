@@ -57,7 +57,8 @@ export function startServer({ port, source, project = null, recent = recentFolde
   };
   const read = new Map(); // project id → { routes, logs }
   const info = async (p, fresh = false) => {
-    if (!read.has(p.id) || fresh) read.set(p.id, await readProject(p));
+    // A project with its routes given (the demo's sample API) isn't read from disk.
+    if (!read.has(p.id) || fresh) read.set(p.id, p.routes ? { routes: p.routes, logs: true } : await readProject(p));
     return read.get(p.id);
   };
 

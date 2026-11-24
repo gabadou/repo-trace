@@ -10,8 +10,8 @@ Studio G tool, one of the Repo tools (with Repo Atlas; "Repo" is the suite, 23 N
 - `src/parse.mjs`: printed lines → events (`parseLine`), the terminal copy without trace lines (`passThrough`, `--show` keeps them), the line splitter, `fromWranglerLine`.
 - `src/folders.mjs`: `~` in paths, recent folders (`~/.config/repo-trace/recent.json`: a folder is kept when a project is run from it, six at most) and the Mac's folder dialog (`osascript` `choose folder`, the folder passed as an argument).
 - `src/server.mjs`: the viewer page, `/events` (server-sent events: calls, `session`, `output`, `reset`) and `/api/*` (projects of a folder, choose-folder, routes, session). Listens on 127.0.0.1 only; every `/api` request needs the `x-repo-trace: 1` header, the page's own origin and a localhost Host (it can list any folder). Keeps the last 20,000 events for a page opened late.
-- `src/demo.mjs`: sample traffic shaped like learn.fm making an episode.
-- `viewer/index.html`: the whole viewer, one file, no build, no framework. State is reduced from events in the page.
+- `src/demo.mjs`: a sample API (its routes, `DEMO_ROUTES`) with traffic shaped like learn.fm: requests (a 404 now and then, a rare 500), episodes being made, a few minutes of history so the pulse isn't empty.
+- `viewer/index.html`: the whole viewer, one file, no build, no framework. State is reduced from events in the page. The running view is T1 (24 Nov 2026, mock: the TraceMap board on the canvas): left, the project (its name opens the start screen; Stop, Restart, Output) and its routes as a tree by path, each with its methods, call counts and a heat pixel (calls in the last five minutes); middle, the pulse (one square per request over the last five minutes, grey 2xx, outlined 4xx, red 5xx, sun selected), the jobs (groups that aren't requests: an episode, a host turn) and the selected request's waterfall with Previous / Next / Latest; right, What went wrong (the latest failure, always shown) and the selected call; bottom, Pause. Clicking a route filters the pulse and the requests. What went wrong shows the failing call's note and the route's file:line; pairing it with wrangler's own exception lines is still to do (BL-315).
 - `lib/trace.ts`: what an app copies in to log calls (`span`, `traceGroup`, `tracedFetch`, `traceOn`).
 - `docs/format.md`: the line format. Change it there first; keep `lib/trace.ts`, the parser and the viewer in step.
 
@@ -19,7 +19,7 @@ Studio G tool, one of the Repo tools (with Repo Atlas; "Repo" is the suite, 23 N
 - No dependencies, no build step. Node 20+.
 - Studio G design system: tokens copied by hand from `studio-g/design-system/tokens.json` into the viewer's `:root` (Light) and `[data-theme="dark"]` (After hours). No other hex values. Inter, no monospace except the JSON example and the Output view (a terminal's text). Square pixels mark state. One primary action per view.
 - Services get tag colours (fixed for known names, by hash for others), category only. `danger` only for failures, always with words.
-- The accent is Studio G's cobalt for now; Repo Trace's signature colour is sun (24 Nov 2026), applied with the T1 redesign.
+- Sun is the accent (24 Nov 2026): `spark-sun` for pixels and the selected square, `tag-sun` for selected rows, `tag-sun-ink` for links and accent text (`--accent`). Services and methods keep tag colours as categories, never sun (ElevenLabs is vermilion, PUT and PATCH too).
 - Copy: few words, verbs on buttons, no exclamation marks, no emoji, no promises of things that aren't built.
 - Privacy: nothing leaves the computer. Repo Trace shows what the app logs; the docs tell apps never to log user text, prompts or keys.
 

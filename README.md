@@ -12,7 +12,7 @@ Part of Studio G's Repo tools, with [Repo Atlas](https://github.com/gabadou/repo
 node bin/trace.mjs demo --open
 ```
 
-Sample traffic shaped like a podcast episode being made: a writer, a fact-check, scenes voiced five at a time, one that fails and goes to another voice.
+A sample API with its routes and live traffic: requests as they come (a 404 now and then, a rare 500), and podcast episodes being made, with a writer, a fact-check, scenes voiced five at a time, one that fails and goes to another voice.
 
 ## Use it
 

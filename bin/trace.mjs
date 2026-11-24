@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { startServer } from '../src/server.mjs';
 import { parseLine, lineSplitter, fromWranglerLine, passThrough } from '../src/parse.mjs';
 import { findProjects } from '../src/projects.mjs';
-import { runDemo } from '../src/demo.mjs';
+import { runDemo, DEMO_ROUTES } from '../src/demo.mjs';
 
 // Where projects are looked for by default: the folder repo-trace sits in (~/Code), as Repo Atlas does.
 const HOME_FOLDER = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -114,9 +114,11 @@ async function main() {
   else if (!opt.cmd) source = { mode: 'local', label: 'stdin' };
   else { console.error(`trace: unknown command "${opt.cmd}"\n\n${HELP}`); process.exit(1); }
 
+  // The demo plays a sample API: its routes come with it.
+  const project = opt.cmd === 'demo' ? { id: 'demo', label: 'Sample API', routes: DEMO_ROUTES } : here;
   let viewer;
   try {
-    viewer = await startServer({ port: opt.port, source, project: here });
+    viewer = await startServer({ port: opt.port, source, project });
   } catch (err) {
     console.error(err.code === 'EADDRINUSE'
       ? `trace: port ${opt.port} is taken. Try --port ${opt.port + 1}`

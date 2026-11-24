@@ -70,8 +70,9 @@ export async function findProjects(root) {
     const rel = relative(root, dir) || basename(dir);
     const last = Number(await git(dir, ['log', '-1', '--format=%ct'])) * 1000 || (await stat(dir)).mtimeMs;
     projects.push({
-      id: rel.split('/').join('~'),
+      id: dir, // unique across folders: the page can list any folder
       label: rel,
+      root,
       dir,
       config,
       worker: cfg.name || basename(dir),
@@ -186,8 +187,16 @@ export function routesIn(text) {
   return result.filter((r) => !(r.method === 'ANY' && r.path.endsWith('/*') && paths.has(r.path.slice(0, -2)))).sort((a, b) => a.line - b.line);
 }
 
+// A line Repo Trace reads, written by lib/trace.ts or by hand: { trace: 'span' … } or {"trace":"span" …}.
+const TRACE_LINE = /["']?trace["']?\s*:\s*["'](span|start|group)["']/;
+
 /** Every route of a project, with the file and line it's in. */
 export async function findRoutes(project) {
+  return (await readProject(project)).routes;
+}
+
+/** A project's routes, and whether its code logs Repo Trace's lines (`logs`). */
+export async function readProject(project) {
   const start = dirname(join(project.dir, project.main));
   const files = [];
   async function walk(dir, depth) {
@@ -201,14 +210,17 @@ export async function findRoutes(project) {
   }
   await walk(start, 0);
   const routes = [];
+  let logs = false;
   for (const f of files.slice(0, 400)) {
     let text;
     try { text = await readFile(f, 'utf8'); } catch { continue; }
-    if (text.length > 400_000 || !/pathname|\.(get|post|put|patch|delete)\(/.test(text)) continue;
+    if (text.length > 400_000) continue;
+    if (!logs && TRACE_LINE.test(text)) logs = true;
+    if (!/pathname|\.(get|post|put|patch|delete)\(/.test(text)) continue;
     for (const r of routesIn(text)) routes.push({ ...r, file: relative(project.dir, f) });
   }
   if (project.assets) routes.push({ method: 'GET', path: '/*', file: null, line: null, assets: true });
-  return routes;
+  return { routes, logs };
 }
 
 /** A route's path → a pattern that matches request paths, and how specific it is. */

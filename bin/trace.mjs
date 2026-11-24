@@ -102,7 +102,7 @@ async function main() {
   const here = ['dev', 'run'].includes(opt.cmd) ? (await findProjects(process.cwd())).find((p) => p.dir === process.cwd()) ?? null : null;
   if (here) {
     const rel = relative(HOME_FOLDER, here.dir);
-    if (rel && !rel.startsWith('..')) { here.label = rel; here.id = rel.split('/').join('~'); }
+    if (rel && !rel.startsWith('..')) here.label = rel;
   }
   if (opt.cmd === 'serve') {
     const root = resolve(opt.rest[0] || HOME_FOLDER);

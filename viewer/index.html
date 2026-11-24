@@ -20,7 +20,7 @@
   --ink: #1a1a1a; --ink-muted: #6e6e6e; --ink-inverse: #ffffff;
   --accent: #1f4fd8; --accent-soft: #e3eafb; --danger: #c23a22;
   --sky: #dcebfc; --sky-ink: #1d4f8c; --lilac: #ece4fb; --lilac-ink: #54348c;
-  --rose: #fbe0e6; --rose-ink: #8c2440; --sun: #fcefc7; --sun-ink: #7a5a00;
+  --rose: #fbe0e6; --rose-ink: #8c2440; --sun: #fcefc7; --sun-ink: #7a5a00; --spark-sun: #e8b400;
   --mint: #d8f2e4; --mint-ink: #1e6b45; --vermilion: #fbe3dc; --vermilion-ink: #a8361c;
   --faint: #f2f2f2; --lab: 220px;
   --font: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -32,7 +32,7 @@
   --ink: #ededed; --ink-muted: #9a9a9a; --ink-inverse: #131313;
   --accent: #7c9bf2; --accent-soft: #1b2440; --danger: #f2765e;
   --sky: #16283f; --sky-ink: #8db8ee; --lilac: #2a2140; --lilac-ink: #c3aef2;
-  --rose: #3d1c26; --rose-ink: #f09ab1; --sun: #3a3113; --sun-ink: #f2d478;
+  --rose: #3d1c26; --rose-ink: #f09ab1; --sun: #3a3113; --sun-ink: #f2d478; --spark-sun: #e8b400;
   --mint: #15352a; --mint-ink: #7fd6a6; --vermilion: #3d1e16; --vermilion-ink: #f5a08a;
   --faint: #222222;
   color-scheme: dark;
@@ -134,20 +134,38 @@ dd { margin: 0; overflow-wrap: anywhere; }
 
 .empty { padding: 32px; display: flex; flex-direction: column; gap: 12px; max-width: 720px; }
 .empty pre { margin: 0; font: 12px/18px var(--mono); padding: 12px; background: var(--surface-2); border-radius: 5px; white-space: pre-wrap; overflow-wrap: anywhere; }
-/* Picker, routes, output */
-.picker { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
-.picker > .card { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.plist { flex: 999 1 560px; min-width: 0; }
-.prow {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 12px; border: 0; border-top: 1px solid var(--faint);
-  background: transparent; text-align: left; cursor: pointer; border-radius: 7px; width: 100%;
-}
-.prow:first-of-type { border-top: 0; }
-.prow:hover { background: var(--surface-2); }
-.prow b { font-weight: 600; }
-.rlist { flex: 1 1 320px; max-width: 460px; }
-.route { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 5px 0; border-top: 1px solid var(--faint); font-size: 13px; }
-.route .path, .rrow .path { overflow-wrap: break-word; }
+/* Start screen: a folder, then a project */
+body.picking .side, body.picking header.top { display: none; }
+.start { width: 100%; max-width: 760px; margin: 16px auto 0; display: flex; flex-direction: column; gap: 16px; }
+.start-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.start-head .mark i { background: var(--spark-sun); }
+.start-tools { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.folder { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.field { display: flex; gap: 8px; }
+.field input { flex: 1 1 auto; min-width: 0; height: 36px; padding: 0 10px; border-radius: 7px; border: 1px solid var(--line); background: var(--surface-2); font: inherit; color: var(--ink); }
+.field .btn { height: 36px; flex: none; }
+.recent { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; }
+.recent .linkbtn { color: var(--sun-ink); font-size: 12px; }
+.recent .linkbtn[aria-current="true"] { color: var(--ink); }
+.plist { padding: 8px; display: flex; flex-direction: column; }
+.phead { display: flex; justify-content: space-between; gap: 12px; padding: 8px 8px 6px; }
+.as-typed { text-transform: none; letter-spacing: 0; }
+.pad { margin: 0; padding: 8px; }
+.prow { position: relative; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; padding: 4px 12px 4px 4px; border-radius: 8px; }
+.prow + .prow::before { content: ""; position: absolute; top: 0; left: 12px; right: 12px; height: 1px; background: var(--faint); }
+.prow.on::before, .prow.on + .prow::before, .prow:hover::before, .prow:hover + .prow::before { display: none; }
+.prow:not(.on):hover { background: var(--surface-2); }
+.prow.on { background: var(--sun); flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 10px; padding-bottom: 12px; }
+.prow.on > :not(.prow-top) { margin-left: 8px; }
+.prow.on .muted { color: var(--sun-ink); }
+.prow-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; }
+.prow-end { display: flex; align-items: center; gap: 12px; flex: none; margin-left: auto; }
+.pick { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; padding: 8px; border: 0; background: none; text-align: left; cursor: pointer; border-radius: 6px; }
+.pick b { font-weight: 600; }
+.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-size: 11px; line-height: 18px; padding: 0 6px; border-radius: 4px; background: var(--surface); color: var(--ink); box-shadow: inset 2px 0 0 var(--ti); }
+/* Routes, output */
+.rrow .path { overflow-wrap: break-word; }
 .method { font-size: 11px; line-height: 18px; font-weight: 600; letter-spacing: 0.04em; padding: 0 6px; border-radius: 5px; text-align: center; background: var(--tb); color: var(--ti); }
 .rtable .rrow {
   display: grid; grid-template-columns: 72px minmax(0, 2fr) 56px 64px 72px minmax(0, 1.4fr); gap: 12px; align-items: center;
@@ -448,62 +466,111 @@ function ago(t) {
   if (hr < 48) return `${hr} h ago`;
   return new Date(t).toLocaleDateString([], { day: 'numeric', month: 'short' });
 }
-const P = { step: 'pick', projects: null, root: null, project: null, routes: null, busy: false, error: null };
-async function loadProjects() {
+// ---------- the start screen: a folder, then a project ----------
+// Rebuilt only when P changes (P.v), so typing in the folder field isn't lost to a redraw.
+const P = { v: 0, drawn: -1, root: null, input: '', projects: null, recent: [], canChoose: false, selected: null, routes: new Map(), loading: false, choosing: false, busy: null, error: null, folderError: null };
+const changed = () => { P.v++; };
+async function loadProjects(root, fresh) {
+  P.loading = true; P.folderError = null; P.error = null; changed(); render();
+  const q = new URLSearchParams();
+  if (root) q.set('root', root);
+  if (fresh) q.set('fresh', '1');
   try {
-    const d = await api('/api/projects');
-    P.projects = d.projects; P.root = d.root;
-  } catch (e) { P.error = e.message; P.projects = []; }
-  render();
+    const d = await api(`/api/projects${String(q) ? '?' + q : ''}`);
+    Object.assign(P, { root: d.root, input: d.root, projects: d.projects, recent: d.recent || [], canChoose: !!d.canChoose });
+    const keep = d.projects.find((p) => p.id === P.selected);
+    P.selected = keep ? keep.id : d.projects[0] ? d.projects[0].id : null;
+    if (P.selected) loadProjectRoutes(P.selected);
+  } catch (e) {
+    P.folderError = e.message;
+    if (!P.projects) P.projects = [];
+  }
+  P.loading = false; changed(); render();
 }
-async function pickProject(p) {
-  P.project = p; P.step = 'project'; P.routes = null; P.error = null;
-  render();
-  try { const { routes } = await api(`/api/projects/${encodeURIComponent(p.id)}/routes`); if (P.project === p) { P.routes = routes; render(); } } catch { /* none */ }
-}
-async function startSession() {
-  P.busy = true; P.error = null; render();
+async function loadProjectRoutes(id) {
+  if (P.routes.has(id)) return;
   try {
-    await api('/api/session', { method: 'POST', body: JSON.stringify({ project: P.project.id }) });
+    const { routes } = await api(`/api/projects/${encodeURIComponent(id)}/routes`);
+    P.routes.set(id, routes); changed(); render();
+  } catch { /* none */ }
+}
+async function pickFolder() {
+  P.choosing = true; P.folderError = null; changed(); render();
+  try {
+    const d = await api('/api/choose-folder', { method: 'POST', body: JSON.stringify({ from: P.input || P.root }) });
+    if (d.folder) { P.choosing = false; return loadProjects(d.folder); }
+  } catch (e) { P.folderError = e.message; }
+  P.choosing = false; changed(); render();
+}
+function selectProject(p) {
+  P.selected = p.id; P.error = null; changed(); render();
+  loadProjectRoutes(p.id);
+}
+async function startSession(p) {
+  P.busy = p.id; P.selected = p.id; P.error = null; changed(); render();
+  try {
+    await api('/api/session', { method: 'POST', body: JSON.stringify({ project: p.id }) });
     S.forcePicker = false; S.view = 'calls'; S.filter = 'all'; S.follow = true;
   } catch (e) { P.error = e.message; }
-  P.busy = false; render();
+  P.busy = null; changed(); render();
 }
 
 function drawPicker() {
+  if (P.drawn === P.v) return;
+  P.drawn = P.v;
   const el = $('picker');
-  $('title').textContent = P.step === 'pick' ? 'Pick a project' : P.project.label;
-  $('summary').textContent = P.step === 'pick' ? (P.root ? `Workers in ${P.root}` : '') : P.project.worker;
-  if (P.step === 'pick') {
-    if (!P.projects) { el.replaceChildren(h('div', { class: 'card', style: { padding: '16px' } }, h('span', { class: 'muted' }, 'Looking for projects…'))); return; }
-    if (!P.projects.length) {
-      el.replaceChildren(h('div', { class: 'card empty' }, h('h2', {}, 'No project with a Worker here'),
-        h('p', { class: 'muted', style: { margin: 0 } }, `Repo Trace looks for wrangler.jsonc, wrangler.json or wrangler.toml up to two folders inside ${P.root}. Open it on another folder: trace ~/path/to/folder`)));
-      return;
-    }
-    el.replaceChildren(h('div', { class: 'picker' }, h('div', { class: 'card plist', role: 'list' },
-      ...P.projects.map((p) => h('button', { class: 'prow', type: 'button', role: 'listitem', onclick: () => pickProject(p) },
-        h('b', {}, p.label), h('span', { class: 'small muted', style: { textAlign: 'right' } }, ago(p.changed)),
-        h('span', { class: 'small muted' }, `${p.worker} · ${p.main}`),
-        h('span', { class: 'small muted', style: { textAlign: 'right' } }, `${p.routes} ${plural('route', p.routes)}`))))));
-    return;
-  }
-  const p = P.project;
-  const routes = P.routes;
-  el.replaceChildren(h('div', { class: 'picker' },
-    h('div', { class: 'card', style: { flex: '999 1 520px', minWidth: 0 } },
-      h('button', { class: 'linkbtn', type: 'button', onclick: () => { P.step = 'pick'; render(); } }, '← All projects'),
-      h('h2', {}, 'Run it on this computer'),
-      h('span', { class: 'muted' }, `Starts wrangler dev in ${p.label}. Call it from your app or with curl: each request shows up as it happens.`),
-      P.error ? h('span', { class: 'small', style: { color: 'var(--danger)' } }, P.error) : null,
-      h('div', {}, h('button', { class: 'btn primary', type: 'button', disabled: P.busy || null, onclick: startSession }, P.busy ? 'Starting…' : 'Run it'))),
-    h('div', { class: 'card rlist' },
-      h('h2', {}, routes ? `${routes.length} ${plural('route', routes.length)}` : 'Routes'),
-      h('span', { class: 'small muted' }, 'Read from the code, so some may be missing.'),
-      ...(routes || []).map((r) => h('div', { class: 'route' },
-        h('span', { class: 'method', style: methodStyle(r.method) }, r.method),
-        pathEl(r.path),
-        h('span', { class: 'small muted' }, r.assets ? 'static files' : `${r.file}:${r.line}`))))));
+  const focused = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.k : null;
+  const ses = S.session;
+
+  const theme = h('button', { class: 'theme', type: 'button', 'data-k': 'theme', 'aria-label': 'Switch light or dark mode', title: 'Switch light or dark mode', onclick: toggleTheme });
+  theme.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${themeIcon()}</svg>`;
+  const head = h('div', { class: 'start-head' },
+    h('div', { class: 'mark' }, 'REPO TRACE', h('i')),
+    h('span', { class: 'start-tools' },
+      ses ? h('button', { class: 'linkbtn', type: 'button', onclick: () => { S.forcePicker = false; render(); } }, `Back to ${ses.label}`) : null,
+      h('span', { class: 'small muted' }, 'Runs on your computer. Nothing leaves it.'),
+      theme));
+
+  const folder = h('section', { class: 'card folder', 'aria-label': 'Folder' },
+    h('label', { class: 'meta', for: 'folder' }, 'Folder'),
+    h('form', { class: 'field', onsubmit: (e) => { e.preventDefault(); if (P.input.trim()) loadProjects(P.input.trim()); } },
+      h('input', { id: 'folder', 'data-k': 'folder', type: 'text', value: P.input, spellcheck: 'false', autocomplete: 'off', 'aria-invalid': P.folderError ? 'true' : null, 'aria-describedby': P.folderError ? 'folder-error' : null, oninput: (e) => { P.input = e.target.value; } }),
+      P.canChoose
+        ? h('button', { class: 'btn', type: 'button', 'data-k': 'choose', disabled: P.choosing || null, onclick: pickFolder }, P.choosing ? 'Choosing…' : 'Choose a folder…')
+        : h('button', { class: 'btn', type: 'submit', 'data-k': 'open' }, 'Open')),
+    P.folderError ? h('span', { class: 'small', id: 'folder-error', style: { color: 'var(--danger)' } }, P.folderError) : null,
+    P.recent.length ? h('div', { class: 'recent small muted' }, 'Recent:',
+      ...P.recent.map((f) => h('button', { class: 'linkbtn', type: 'button', 'data-k': 'recent:' + f, 'aria-current': f === P.root ? 'true' : null, onclick: () => loadProjects(f) }, f))) : null);
+
+  const list = P.projects;
+  const rows = !list || (P.loading && !list.length) ? [h('p', { class: 'muted pad' }, 'Looking for APIs…')]
+    : !list.length ? [h('div', { class: 'pad' }, h('h2', {}, 'No API here'),
+        h('p', { class: 'muted', style: { margin: '4px 0 0' } }, 'Repo Trace looks for a wrangler.jsonc, wrangler.json or wrangler.toml with a main file, up to two folders down. Try another folder.'))]
+    : [h('div', { class: 'phead meta' },
+        h('span', {}, `${list.length} ${list.length === 1 ? 'API' : 'APIs'} in `, h('span', { class: 'as-typed' }, P.root)),
+        h('span', {}, 'Most recent first')),
+      ...list.map(projectRow)];
+  const projects = h('section', { class: 'card plist', 'aria-label': 'Projects', 'aria-busy': P.loading ? 'true' : null }, ...rows);
+
+  el.replaceChildren(h('div', { class: 'start' }, head, folder, projects));
+  if (focused) { const back = el.querySelector(`[data-k="${CSS.escape(focused)}"]`); if (back) back.focus(); }
+}
+function projectRow(p) {
+  const on = p.id === P.selected;
+  const run = h('button', { class: on ? 'btn primary' : 'btn', type: 'button', 'data-k': 'run:' + p.id, disabled: P.busy ? true : null, onclick: () => startSession(p) }, P.busy === p.id ? 'Starting…' : 'Run it');
+  const pick = h('button', { class: 'pick', type: 'button', 'data-k': 'pick:' + p.id, 'aria-expanded': String(on), onclick: () => selectProject(p) },
+    h('b', {}, p.label),
+    h('span', { class: 'small muted' }, `${p.worker} · ${p.main} · changed ${ago(p.changed)}`));
+  if (!on) return h('div', { class: 'prow' }, pick, h('span', { class: 'prow-end' }, h('span', { class: 'small muted' }, p.routes ? `${p.routes} ${plural('route', p.routes)}` : 'No routes found'), run));
+  const routes = P.routes.get(p.id);
+  return h('div', { class: 'prow on' },
+    h('div', { class: 'prow-top' }, pick, run),
+    !routes ? h('span', { class: 'small muted' }, 'Reading its routes…')
+      : routes.length ? h('ul', { class: 'chips', 'aria-label': `${routes.length} ${plural('route', routes.length)}` },
+          ...routes.map((r) => h('li', { class: 'chip', style: methodStyle(r.method), title: r.assets ? 'Served from its static files' : `${r.file}:${r.line}` }, r.assets ? 'Static files' : `${r.method} ${r.path}`)))
+      : h('span', { class: 'small muted' }, 'No routes found in its code. Requests still show up.'),
+    h('span', { class: 'small muted' }, 'Starts ', h('b', {}, 'wrangler dev'), ` in ${p.label}, on port ${p.port || 8787}.`, p.logs ? ' It logs its own steps too, with Repo Trace\'s lines.' : ''),
+    P.error ? h('span', { class: 'small', style: { color: 'var(--danger)' } }, P.error) : null);
 }
 // A path that breaks after its slashes, not inside a word.
 function pathEl(path) {
@@ -588,6 +655,7 @@ function draw() {
   $('pause').textContent = S.paused ? `Resume${S.queue.length ? ` (${S.queue.length})` : ''}` : 'Pause';
   live.hidden = picking; $('pause').hidden = picking;
 
+  document.body.classList.toggle('picking', picking);
   if (picking) {
     $('nav').replaceChildren();
     show('picker');
@@ -806,25 +874,26 @@ function drawDetail(g, s) {
 }
 
 // ---------- theme ----------
-function drawTheme() {
-  const dark = document.documentElement.dataset.theme === 'dark';
-  $('theme-icon').innerHTML = dark
+function themeIcon() {
+  return document.documentElement.dataset.theme === 'dark'
     ? '<path d="M10.5 2.2A6 6 0 1 0 13.8 9.5 4.6 4.6 0 0 1 10.5 2.2Z" fill="currentColor"/>'
     : '<circle cx="8" cy="8" r="3.2" fill="currentColor"/><path d="M8 1v1.4M8 13.6V15M1 8h1.4M13.6 8H15M3 3l1 1M12 12l1 1M3 13l1-1M12 4l1-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>';
 }
-$('theme').addEventListener('click', () => {
+function drawTheme() { $('theme-icon').innerHTML = themeIcon(); }
+function toggleTheme() {
   const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
   document.documentElement.dataset.theme = next;
   try { localStorage.setItem('trace-theme', next); } catch {}
-  drawTheme();
-});
+  drawTheme(); changed(); render();
+}
+$('theme').addEventListener('click', toggleTheme);
 drawTheme();
 
 // ---------- session buttons ----------
 $('stop').addEventListener('click', () => { api('/api/session', { method: 'DELETE' }).catch(() => {}); });
 $('change').addEventListener('click', () => {
   S.forcePicker = !S.forcePicker;
-  if (S.forcePicker) { P.step = 'pick'; loadProjects(); }
+  if (S.forcePicker) loadProjects(P.root, true);
   render();
 });
 $('notice-output').addEventListener('click', () => { S.view = 'output'; render(); });

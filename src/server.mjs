@@ -1,13 +1,15 @@
 // The local viewer: one page, a stream of events (server-sent events) and, when Repo Trace was opened on a folder of
-// projects, a small API to pick one and start or stop it.
-// Bound to 127.0.0.1 only: what a process logs never leaves this computer. Requests that start anything must come
-// from the page itself (a custom header and the same origin), so another site can't start a project.
+// projects, a small API to pick a folder and a project and start or stop it.
+// Bound to 127.0.0.1 only: what a process logs never leaves this computer. Every /api request must come from the page
+// itself (a custom header, the same origin, and a localhost Host, against DNS rebinding), so another site can't list
+// folders or start a project.
 
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { findProjects, findRoutes } from './projects.mjs';
+import { findProjects, readProject } from './projects.mjs';
 import { createSessions } from './session.mjs';
+import { tilde, untilde, isDir, recentFolders, chooseFolder } from './folders.mjs';
 
 const PAGE = fileURLToPath(new URL('../viewer/index.html', import.meta.url));
 const KEEP = 20000; // events kept for a page opened late
@@ -17,7 +19,7 @@ const KEEP_OUTPUT = 400;
  * source: what this run watches ({ mode, label }), or { mode: 'serve', root } for the project picker.
  * project: the project the fixed source runs in, if any, so its routes can be listed.
  */
-export function startServer({ port, source, project = null }) {
+export function startServer({ port, source, project = null, recent = recentFolders() }) {
   const log = [];
   const output = [];
   const clients = new Set();
@@ -44,16 +46,19 @@ export function startServer({ port, source, project = null }) {
   };
   const sessions = source.mode === 'serve' ? createSessions(hub) : null;
 
-  let projectsCache = null;
-  const projects = async (fresh = false) => {
-    if (source.mode !== 'serve') return project ? [project] : [];
-    if (!projectsCache || fresh) projectsCache = await findProjects(source.root);
-    return projectsCache;
+  // Projects by id (their folder), from every folder listed so far: only these can be run.
+  const known = new Map(project ? [[project.id, project]] : []);
+  const listed = new Map(); // folder → its projects
+  const projects = async (root, fresh = false) => {
+    if (!listed.has(root) || fresh) listed.set(root, await findProjects(root));
+    // The folder last listed is the one a project is run from (and remembered as recent).
+    for (const p of listed.get(root)) known.set(p.id, p);
+    return listed.get(root);
   };
-  const routesCache = new Map();
-  const routes = async (p) => {
-    if (!routesCache.has(p.id)) routesCache.set(p.id, await findRoutes(p));
-    return routesCache.get(p.id);
+  const read = new Map(); // project id → { routes, logs }
+  const info = async (p, fresh = false) => {
+    if (!read.has(p.id) || fresh) read.set(p.id, await readProject(p));
+    return read.get(p.id);
   };
 
   const json = (res, code, data) => { res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(data)); };
@@ -85,29 +90,42 @@ export function startServer({ port, source, project = null }) {
       }
 
       if (!path.startsWith('/api/')) return res.writeHead(404).end('Not found');
-      if (req.method !== 'GET') {
-        const origin = req.headers.origin;
-        const host = req.headers.host;
-        if (req.headers['x-repo-trace'] !== '1' || (origin && origin !== `http://${host}`)) return json(res, 403, { error: 'Only the Repo Trace page can do that' });
-      }
+      if (!fromPage(req)) return json(res, 403, { error: 'Only the Repo Trace page can do that' });
 
       if (path === '/api/projects' && req.method === 'GET') {
-        const list = await projects(url.searchParams.has('fresh'));
+        if (source.mode !== 'serve') return json(res, 200, { root: null, projects: [] });
+        const root = untilde(url.searchParams.get('root') || source.root);
+        if (!(await isDir(root))) return json(res, 400, { error: `No folder at ${tilde(root)}` });
+        const fresh = url.searchParams.has('fresh');
         const out = [];
-        for (const p of list) out.push({ id: p.id, label: p.label, worker: p.worker, main: p.main, changed: p.changed, routes: (await routes(p)).length });
-        return json(res, 200, { root: source.root ?? null, projects: out });
+        for (const p of await projects(root, fresh)) {
+          const { routes, logs } = await info(p, fresh);
+          out.push({ id: p.id, label: p.label, worker: p.worker, main: p.main, port: p.port, changed: p.changed, routes: routes.length, logs });
+        }
+        return json(res, 200, {
+          root: tilde(root), projects: out,
+          recent: (await recent.list()).map((f) => tilde(f)),
+          canChoose: process.platform === 'darwin',
+        });
+      }
+      if (path === '/api/choose-folder' && req.method === 'POST' && source.mode === 'serve') {
+        const { from } = await body(req);
+        const start = untilde(from || source.root);
+        const got = await chooseFolder((await isDir(start)) ? start : source.root);
+        return json(res, got.error ? 500 : 200, got.folder ? { folder: tilde(got.folder) } : got);
       }
       const pm = path.match(/^\/api\/projects\/([^/]+)\/routes$/);
       if (pm) {
-        const p = (await projects()).find((x) => x.id === decodeURIComponent(pm[1]));
+        const p = known.get(decodeURIComponent(pm[1]));
         if (!p) return json(res, 404, { error: 'Unknown project' });
-        return json(res, 200, { routes: await routes(p) });
+        return json(res, 200, { routes: (await info(p)).routes });
       }
       if (path === '/api/session' && sessions) {
         if (req.method === 'POST') {
           const { project: id } = await body(req);
-          const p = (await projects()).find((x) => x.id === id);
+          const p = known.get(id);
           if (!p) return json(res, 400, { error: 'Pick a project' });
+          if (p.root) recent.add(p.root);
           return json(res, 200, sessions.start(p));
         }
         if (req.method === 'DELETE') { sessions.stop(); return json(res, 200, sessions.view()); }
@@ -117,6 +135,16 @@ export function startServer({ port, source, project = null }) {
       return json(res, 500, { error: err.message });
     }
   });
+
+  // The page itself: our header (a page elsewhere can't send it without asking first), our origin if one is sent, and
+  // a Host that names this computer.
+  function fromPage(req) {
+    const host = req.headers.host || '';
+    const origin = req.headers.origin;
+    return req.headers['x-repo-trace'] === '1'
+      && /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host)
+      && (!origin || origin === `http://${host}`);
+  }
 
   const ping = setInterval(() => { for (const res of clients) res.write(': ping\n\n'); }, 15000);
   ping.unref();

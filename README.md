@@ -24,7 +24,7 @@ trace -- npm run dev       # any command
 npm run dev | trace        # or pipe it
 ```
 
-With no command, Repo Trace lists the projects with a Worker (a `wrangler.jsonc`, `.json` or `.toml`) in the folder it sits in, like Repo Atlas: pick one and Repo Trace runs it (`wrangler dev`): requests show up as they happen, with nothing added to the project. Local only: it never connects to your Cloudflare account. Its routes are listed too, read from the code, with how often each was called and its last status.
+With no command, Repo Trace lists the projects with a Worker (a `wrangler.jsonc`, `.json` or `.toml`) in the folder it sits in, like Repo Atlas (type another folder, choose one with the Mac's folder dialog, or pick a recent one): pick one and Repo Trace runs it (`wrangler dev`): requests show up as they happen, with nothing added to the project. Local only: it never connects to your Cloudflare account. Its routes are listed too, read from the code, with how often each was called and its last status.
 
 The viewer is on http://localhost:4400 (`--port` to change, `--open` to open it). It listens on your computer only. The process's output still shows in the terminal, minus the trace lines (`--show` keeps them).
 

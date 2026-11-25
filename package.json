@@ -2,6 +2,25 @@
   "name": "repo-trace",
   "version": "0.1.0",
   "description": "Your local API's calls as a live waterfall. Part of Studio G's Repo tools, with Repo Atlas.",
+  "keywords": [
+    "cloudflare-workers",
+    "wrangler",
+    "api",
+    "tracing",
+    "waterfall",
+    "local-development",
+    "devtools"
+  ],
+  "homepage": "https://github.com/gabadou/repo-trace#readme",
+  "bugs": {
+    "url": "https://github.com/gabadou/repo-trace/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gabadou/repo-trace.git"
+  },
+  "license": "MIT",
+  "author": "Studio G",
   "type": "module",
   "bin": {
     "trace": "bin/trace.mjs"
@@ -11,7 +30,7 @@
     "src",
     "viewer",
     "lib",
-    "docs"
+    "docs/format.md"
   ],
   "scripts": {
     "help": "node bin/trace.mjs --help",
@@ -20,7 +39,5 @@
   },
   "engines": {
     "node": ">=20"
-  },
-  "license": "MIT",
-  "author": "Studio G"
+  }
 }

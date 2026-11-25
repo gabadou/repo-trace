@@ -2,14 +2,28 @@
 
 Your local API's calls as a live waterfall, instead of scrolling a terminal.
 
+![Repo Trace: every call your local API answered, one opened to its waterfall](docs/screenshot.png)
+
 You start your API the way you always do, with `trace` in front. Repo Trace reads what it prints and draws its calls on a page on your computer: every request, what ran inside it, what failed and where, and your routes read from the code.
 
-Part of Studio G's Repo tools, with [Repo Atlas](https://github.com/gabadou/repo-atlas): Atlas maps the code, Trace shows what ran. Made for Cloudflare Workers first; it reads any process.
+Part of Studio G's Repo tools, with [Repo Atlas](https://github.com/gabadou/repo-atlas): Atlas maps the code, Trace shows what ran.
+
+Made for Cloudflare Workers first: requests are read from what `wrangler dev` prints, with nothing added to your project. Any other server works too, through the calls your app logs (below); reading Node servers' requests on their own is next.
+
+## Install
+
+Node 20 or later. Not on npm yet, so from GitHub:
+
+```sh
+npm install -g github:gabadou/repo-trace
+```
+
+That gives you the `trace` command. Or clone this repo and run `npm link` in it.
 
 ## Try it
 
 ```sh
-node bin/trace.mjs demo --open
+trace demo --open
 ```
 
 A sample API with its routes and live traffic: requests as they come (a 404 now and then, a rare 500), and podcast episodes being made, with a writer, a fact-check, scenes voiced five at a time, one that fails and goes to another voice.

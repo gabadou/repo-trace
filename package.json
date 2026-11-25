@@ -14,7 +14,7 @@
     "docs"
   ],
   "scripts": {
-    "start": "node bin/trace.mjs --open",
+    "help": "node bin/trace.mjs --help",
     "demo": "node bin/trace.mjs demo --open",
     "test": "node --test test/*.test.mjs"
   },

@@ -1,6 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { routesIn, parseJsonc, readConfig, routeMatcher } from '../src/projects.mjs';
+import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { routesIn, parseJsonc, readConfig, routeMatcher, findProjects, readProject } from '../src/projects.mjs';
 
 const list = (text) => routesIn(text).map((r) => `${r.method} ${r.path}`);
 
@@ -48,4 +51,22 @@ test('a request path finds its route', () => {
   assert.ok(!routeMatcher('/v1/episodes/:id').re.test('/v1/episodes/e12/audio'));
   assert.ok(routeMatcher('/audio/*').re.test('/audio/x/y.mp3'));
   assert.ok(routeMatcher('/v1/episodes').score > routeMatcher('/v1/*').score);
+});
+
+test('a project: its id is its folder, its routes, and whether it logs trace lines', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'trace-'));
+  const api = join(root, 'shop', 'api');
+  await mkdir(join(api, 'src'), { recursive: true });
+  await writeFile(join(api, 'wrangler.jsonc'), '{ "name": "shop-api", "main": "src/index.ts", // comment\n }');
+  await writeFile(join(api, 'src', 'index.ts'), "if (url.pathname === '/v1/cart') return cart();\n");
+  const [p] = await findProjects(root);
+  assert.equal(p.id, api);
+  assert.equal(p.label, 'shop/api');
+  assert.equal(p.root, root);
+  let read = await readProject(p);
+  assert.deepEqual(read.routes.map((r) => r.path), ['/v1/cart']);
+  assert.equal(read.logs, false);
+  await writeFile(join(api, 'src', 'trace.ts'), "console.log(JSON.stringify({ trace: 'span', group: g }));\n");
+  read = await readProject(p);
+  assert.equal(read.logs, true);
 });

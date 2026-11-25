@@ -2,7 +2,7 @@
 
 Your local API's calls as a live waterfall, instead of scrolling a terminal.
 
-Repo Trace runs your dev server, reads the calls it logs and draws them on a page on your computer: one waterfall per job, what ran in parallel, what failed and what took over, and what each call cost.
+You start your API the way you always do, with `trace` in front. Repo Trace reads what it prints and draws its calls on a page on your computer: every request, what ran inside it, what failed and where, and your routes read from the code.
 
 Part of Studio G's Repo tools, with [Repo Atlas](https://github.com/gabadou/repo-atlas): Atlas maps the code, Trace shows what ran. Made for Cloudflare Workers first; it reads any process.
 
@@ -16,17 +16,24 @@ A sample API with its routes and live traffic: requests as they come (a 404 now 
 
 ## Use it
 
+Put `trace` in front of the command you already use to start your API:
+
 ```sh
-trace                      # pick a project and run it
-trace ~/Code               # the same, in another folder
-trace dev                  # runs `wrangler dev` here and watches it
-trace -- npm run dev       # any command
+trace npm run dev          # instead of: npm run dev
+trace ./dev.sh             # instead of: ./dev.sh
+trace dev                  # shortcut for wrangler dev, with TRACE=1
 npm run dev | trace        # or pipe it
 ```
 
-With no command, Repo Trace lists the projects with a Worker (a `wrangler.jsonc`, `.json` or `.toml`) in the folder it sits in, like Repo Atlas (type another folder, choose one with the Mac's folder dialog, or pick a recent one): pick one and Repo Trace runs it (`wrangler dev`): requests show up as they happen, with nothing added to the project. Local only: it never connects to your Cloudflare account. Its routes are listed too, read from the code, with how often each was called and its last status.
+The command runs in your terminal as usual: same output (minus Repo Trace's own trace lines; `--show` keeps them), same Ctrl+C. Repo Trace adds one line, `trace: calls on http://localhost:4400`, and stops when your command stops. Requests show up as they happen, with nothing added to the project. Routes are read from the project in the folder you run it from, or the one just below it (`api/`).
 
-The viewer is on http://localhost:4400 (`--port` to change, `--open` to open it). It listens on your computer only. The process's output still shows in the terminal, minus the trace lines (`--show` keeps them).
+To keep it one word away, add a script and leave `dev` as it is:
+
+```json
+"dev:trace": "trace npm run dev"
+```
+
+Options go before the command: `--port <n>` (default 4400), `--open` to open the page. The page listens on your computer only, and it starts nothing: your terminal does.
 
 Then log your calls. Copy `lib/trace.ts` into your app:
 

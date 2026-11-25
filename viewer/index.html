@@ -69,13 +69,9 @@ h3 { margin: 0; }
 .side { flex: 1 1 200px; max-width: 232px; background: var(--surface-2); border-right: 1px solid var(--line); padding: 20px 14px; display: flex; flex-direction: column; gap: 24px; }
 .side .mark { padding: 0 6px; }
 .proj { display: flex; flex-direction: column; gap: 6px; padding: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
-.proj-title { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0; border: 0; background: none; font-size: 15px; line-height: 20px; font-weight: 600; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
-.proj-title[disabled] { cursor: default; color: inherit; }
-.proj-title svg { flex: none; }
+.proj-name { font-size: 15px; line-height: 20px; font-weight: 600; overflow-wrap: anywhere; }
 .state { display: flex; align-items: flex-start; gap: 6px; font-size: 12px; line-height: 16px; color: var(--ink-muted); overflow-wrap: anywhere; }
 .state .px { margin-top: 5px; }
-.proj-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.proj-actions .linkbtn { font-size: 12px; }
 nav { display: flex; flex-direction: column; gap: 2px; }
 nav button { display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 20px; border: 0; border-radius: 6px; background: none; text-align: left; cursor: pointer; }
 nav button:hover { background: var(--surface); }
@@ -197,40 +193,7 @@ button.rrow:hover { background: var(--surface-2); }
 
 .empty { padding: 32px; display: flex; flex-direction: column; gap: 12px; }
 .empty pre { margin: 0; font: 12px/18px var(--mono); padding: 12px; background: var(--surface-2); border-radius: 5px; white-space: pre-wrap; overflow-wrap: anywhere; }
-/* Start screen: a folder, then a project */
-#picker { padding: 24px 16px; }
-.start { width: 100%; max-width: 760px; margin: 16px auto 0; display: flex; flex-direction: column; gap: 16px; }
-.start-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.start-head .mark i { background: var(--spark-sun); }
-.start-tools { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.folder { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-.field { display: flex; gap: 8px; }
-.field input { flex: 1 1 auto; min-width: 0; height: 36px; padding: 0 10px; border-radius: 7px; border: 1px solid var(--line); background: var(--surface-2); font: inherit; color: var(--ink); }
-.field .btn { height: 36px; flex: none; }
-.recent { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; }
-.recent .linkbtn { color: var(--sun-ink); font-size: 12px; }
-.recent .linkbtn[aria-current="true"] { color: var(--ink); }
-.plist { padding: 8px; display: flex; flex-direction: column; }
-.phead { display: flex; justify-content: space-between; gap: 12px; padding: 8px 8px 6px; }
-.as-typed { text-transform: none; letter-spacing: 0; }
-.pad { margin: 0; padding: 8px; }
-.prow { position: relative; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; padding: 4px 12px 4px 4px; border-radius: 8px; }
-.prow + .prow::before { content: ""; position: absolute; top: 0; left: 12px; right: 12px; height: 1px; background: var(--faint); }
-.prow.on::before, .prow.on + .prow::before, .prow:hover::before, .prow:hover + .prow::before { display: none; }
-.prow:not(.on):hover { background: var(--surface-2); }
-.prow.on { background: var(--sun); flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 10px; padding-bottom: 12px; }
-.prow.on > :not(.prow-top) { margin-left: 8px; }
-.prow.on .muted { color: var(--sun-ink); }
-.prow-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; }
-.prow-end { display: flex; align-items: center; gap: 12px; flex: none; margin-left: auto; }
-.pick { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; padding: 8px; border: 0; background: none; text-align: left; cursor: pointer; border-radius: 6px; }
-.pick b { font-weight: 600; }
-.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
-.chip { font-size: 11px; line-height: 18px; padding: 0 6px; border-radius: 4px; background: var(--surface); color: var(--ink); box-shadow: inset 2px 0 0 var(--ti); }
-/* Output */
-.method { font-size: 11px; line-height: 18px; font-weight: 600; letter-spacing: 0.04em; padding: 0 6px; border-radius: 5px; text-align: center; background: var(--tb); color: var(--ti); }
-.output-card { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-.output { font: 12px/18px var(--mono); max-height: 70vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Links */
 .linkbtn { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; font-size: 13px; text-align: left; }
 .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
 [hidden] { display: none !important; }
@@ -254,16 +217,8 @@ button.rrow:hover { background: var(--surface-2); }
   <aside class="side" aria-label="Repo Trace">
     <div class="mark">REPO TRACE<i></i></div>
     <div class="proj">
-      <button class="proj-title" id="proj-title" type="button" title="Change project">
-        <span id="proj-name">Repo Trace</span>
-        <svg id="proj-chev" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 5.5 7 9l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+      <span class="proj-name" id="proj-name">Repo Trace</span>
       <span class="state"><span class="px" id="proj-px"></span><span id="proj-text">Connecting</span></span>
-      <span class="proj-actions">
-        <button class="linkbtn" type="button" id="stop" hidden>Stop</button>
-        <button class="linkbtn" type="button" id="restart" hidden>Restart</button>
-        <button class="linkbtn" type="button" id="show-output" hidden>Output</button>
-      </span>
     </div>
     <nav aria-label="Pages">
       <button type="button" data-page="calls">Calls<span class="n" id="n-calls"></span></button>
@@ -314,15 +269,10 @@ button.rrow:hover { background: var(--surface-2); }
       <p class="muted" style="margin:0">Or a start and an end, to see it while it runs. The whole format is in docs/format.md, and lib/trace.ts writes it for you.</p>
     </section>
 
-    <section class="card output-card" id="output-card" aria-label="Output" hidden>
-      <div class="output" id="output"></div>
-    </section>
-
     <p class="foot" id="foot"></p>
   </main>
 </div>
 
-<section id="picker" hidden></section>
 
 <script>
 // ---------- helpers ----------
@@ -378,7 +328,7 @@ function svcName(svc) {
 const S = {
   groups: new Map(), where: new Map(), source: null, filter: 'all',
   group: null, span: null, follow: true, paused: false, queue: [], connected: false,
-  session: null, forcePicker: false, page: 'calls', output: [], routes: null, routesFor: null,
+  page: 'calls', routes: null, routesFor: null,
   open: null, status: 'all', q: '', routesShow: 'all',
 };
 const MAX_GROUPS = 300;
@@ -507,12 +457,12 @@ async function loadRoutes(projectId) {
   S.routes = null; S.routesFor = projectId;
   if (!projectId) return;
   try {
-    const { routes } = await api(`/api/projects/${encodeURIComponent(projectId)}/routes`);
+    const { routes } = await api('/api/routes');
     if (S.routesFor === projectId) { S.routes = routes; render(); }
   } catch { /* no routes */ }
 }
 
-// ---------- the page's API (project picker, sessions) ----------
+// ---------- the page's API (the routes) ----------
 async function api(path, opts = {}) {
   const res = await fetch(path, { ...opts, headers: { 'content-type': 'application/json', 'x-repo-trace': '1', ...(opts.headers || {}) } });
   const data = await res.json().catch(() => ({}));
@@ -526,112 +476,6 @@ function ago(t) {
   const hr = Math.round(m / 60);
   if (hr < 48) return `${hr} h ago`;
   return new Date(t).toLocaleDateString([], { day: 'numeric', month: 'short' });
-}
-// ---------- the start screen: a folder, then a project ----------
-// Rebuilt only when P changes (P.v), so typing in the folder field isn't lost to a redraw.
-const P = { v: 0, drawn: -1, root: null, input: '', projects: null, recent: [], canChoose: false, selected: null, routes: new Map(), loading: false, choosing: false, busy: null, error: null, folderError: null };
-const changed = () => { P.v++; };
-async function loadProjects(root, fresh) {
-  P.loading = true; P.folderError = null; P.error = null; changed(); render();
-  const q = new URLSearchParams();
-  if (root) q.set('root', root);
-  if (fresh) q.set('fresh', '1');
-  try {
-    const d = await api(`/api/projects${String(q) ? '?' + q : ''}`);
-    Object.assign(P, { root: d.root, input: d.root, projects: d.projects, recent: d.recent || [], canChoose: !!d.canChoose });
-    const keep = d.projects.find((p) => p.id === P.selected);
-    P.selected = keep ? keep.id : d.projects[0] ? d.projects[0].id : null;
-    if (P.selected) loadProjectRoutes(P.selected);
-  } catch (e) {
-    P.folderError = e.message;
-    if (!P.projects) P.projects = [];
-  }
-  P.loading = false; changed(); render();
-}
-async function loadProjectRoutes(id) {
-  if (P.routes.has(id)) return;
-  try {
-    const { routes } = await api(`/api/projects/${encodeURIComponent(id)}/routes`);
-    P.routes.set(id, routes); changed(); render();
-  } catch { /* none */ }
-}
-async function pickFolder() {
-  P.choosing = true; P.folderError = null; changed(); render();
-  try {
-    const d = await api('/api/choose-folder', { method: 'POST', body: JSON.stringify({ from: P.input || P.root }) });
-    if (d.folder) { P.choosing = false; return loadProjects(d.folder); }
-  } catch (e) { P.folderError = e.message; }
-  P.choosing = false; changed(); render();
-}
-function selectProject(p) {
-  P.selected = p.id; P.error = null; changed(); render();
-  loadProjectRoutes(p.id);
-}
-async function startSession(p) {
-  P.busy = p.id; P.selected = p.id; P.error = null; changed(); render();
-  try {
-    await api('/api/session', { method: 'POST', body: JSON.stringify({ project: p.id }) });
-    S.forcePicker = false; S.page = 'calls'; S.filter = 'all'; S.open = null;
-  } catch (e) { P.error = e.message; }
-  P.busy = null; changed(); render();
-}
-
-function drawPicker() {
-  if (P.drawn === P.v) return;
-  P.drawn = P.v;
-  const el = $('picker');
-  const focused = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.k : null;
-  const ses = S.session;
-
-  const theme = h('button', { class: 'theme', type: 'button', 'data-k': 'theme', 'aria-label': 'Switch light or dark mode', title: 'Switch light or dark mode', onclick: toggleTheme });
-  theme.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${themeIcon()}</svg>`;
-  const head = h('div', { class: 'start-head' },
-    h('div', { class: 'mark' }, 'REPO TRACE', h('i')),
-    h('span', { class: 'start-tools' },
-      ses ? h('button', { class: 'linkbtn', type: 'button', onclick: () => { S.forcePicker = false; render(); } }, `Back to ${ses.label}`) : null,
-      h('span', { class: 'small muted' }, 'Runs on your computer. Nothing leaves it.'),
-      theme));
-
-  const folder = h('section', { class: 'card folder', 'aria-label': 'Folder' },
-    h('label', { class: 'meta', for: 'folder' }, 'Folder'),
-    h('form', { class: 'field', onsubmit: (e) => { e.preventDefault(); if (P.input.trim()) loadProjects(P.input.trim()); } },
-      h('input', { id: 'folder', 'data-k': 'folder', type: 'text', value: P.input, spellcheck: 'false', autocomplete: 'off', 'aria-invalid': P.folderError ? 'true' : null, 'aria-describedby': P.folderError ? 'folder-error' : null, oninput: (e) => { P.input = e.target.value; } }),
-      P.canChoose
-        ? h('button', { class: 'btn', type: 'button', 'data-k': 'choose', disabled: P.choosing || null, onclick: pickFolder }, P.choosing ? 'Choosing…' : 'Choose a folder…')
-        : h('button', { class: 'btn', type: 'submit', 'data-k': 'open' }, 'Open')),
-    P.folderError ? h('span', { class: 'small', id: 'folder-error', style: { color: 'var(--danger)' } }, P.folderError) : null,
-    P.recent.length ? h('div', { class: 'recent small muted' }, 'Recent:',
-      ...P.recent.map((f) => h('button', { class: 'linkbtn', type: 'button', 'data-k': 'recent:' + f, 'aria-current': f === P.root ? 'true' : null, onclick: () => loadProjects(f) }, f))) : null);
-
-  const list = P.projects;
-  const rows = !list || (P.loading && !list.length) ? [h('p', { class: 'muted pad' }, 'Looking for APIs…')]
-    : !list.length ? [h('div', { class: 'pad' }, h('h2', {}, 'No API here'),
-        h('p', { class: 'muted', style: { margin: '4px 0 0' } }, 'Repo Trace looks for a wrangler.jsonc, wrangler.json or wrangler.toml with a main file, up to two folders down. Try another folder.'))]
-    : [h('div', { class: 'phead meta' },
-        h('span', {}, `${list.length} ${list.length === 1 ? 'API' : 'APIs'} in `, h('span', { class: 'as-typed' }, P.root)),
-        h('span', {}, 'Most recent first')),
-      ...list.map(projectRow)];
-  const projects = h('section', { class: 'card plist', 'aria-label': 'Projects', 'aria-busy': P.loading ? 'true' : null }, ...rows);
-
-  el.replaceChildren(h('div', { class: 'start' }, head, folder, projects));
-  if (focused) { const back = el.querySelector(`[data-k="${CSS.escape(focused)}"]`); if (back) back.focus(); }
-}
-function projectRow(p) {
-  const on = p.id === P.selected;
-  const run = h('button', { class: on ? 'btn primary' : 'btn', type: 'button', 'data-k': 'run:' + p.id, disabled: P.busy ? true : null, onclick: () => startSession(p) }, P.busy === p.id ? 'Starting…' : 'Run it');
-  const pick = h('button', { class: 'pick', type: 'button', 'data-k': 'pick:' + p.id, 'aria-expanded': String(on), onclick: () => selectProject(p) },
-    h('b', {}, p.label),
-    h('span', { class: 'small muted' }, `${p.worker} · ${p.main} · changed ${ago(p.changed)}`));
-  if (!on) return h('div', { class: 'prow' }, pick, h('span', { class: 'prow-end' }, h('span', { class: 'small muted' }, p.routes ? `${p.routes} ${plural('route', p.routes)}` : 'No routes found'), run));
-  const routes = P.routes.get(p.id);
-  return h('div', { class: 'prow on' },
-    h('div', { class: 'prow-top' }, pick, run),
-    !routes ? h('span', { class: 'small muted' }, 'Reading its routes…')
-      : routes.length ? h('ul', { class: 'chips', 'aria-label': `${routes.length} ${plural('route', routes.length)}` },
-          ...routes.map((r) => h('li', { class: 'chip', style: methodStyle(r.method), title: r.assets ? 'Served from its static files' : `${r.file}:${r.line}` }, r.assets ? 'Static files' : `${r.method} ${r.path}`)))
-      : h('span', { class: 'small muted' }, 'No routes found in its code. Requests still show up.'),
-    h('span', { class: 'small muted' }, 'Starts ', h('b', {}, 'wrangler dev'), ` in ${p.label}, on port ${p.port || 8787}.`, p.logs ? ' It logs its own steps too, with Repo Trace\'s lines.' : ''),
-    P.error ? h('span', { class: 'small', style: { color: 'var(--danger)' } }, P.error) : null);
 }
 // A path that breaks after its slashes, not inside a word.
 function pathEl(path) {
@@ -987,28 +831,11 @@ function since(t) {
   return m < 1 ? 'just started' : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`;
 }
 function drawSide(errors) {
-  const src = S.source || {}, serve = src.mode === 'serve', ses = S.session;
-  $('proj-name').textContent = ses ? ses.label : src.project ? src.project.label : src.label || 'Repo Trace';
-  $('proj-title').disabled = !serve;
-  $('proj-title').title = serve ? 'Change project' : '';
-  $('proj-chev').style.display = serve ? '' : 'none';
-  let text, px = 'var(--ink-muted)', bad = false;
-  if (!S.connected) text = 'Reconnecting';
-  else if (ses) {
-    if (ses.status === 'starting') text = 'Starting…';
-    else if (ses.status === 'running') { text = `Running on ${(ses.url || 'wrangler dev').replace(/^https?:\/\//, '')} · ${since(ses.startedAt)}`; px = 'var(--spark-sun)'; }
-    else if (ses.status === 'failed') { text = `Stopped: ${ses.message || 'see the output'}`; px = 'var(--danger)'; bad = true; }
-    else text = 'Stopped';
-  } else if (serve) text = 'Not running';
-  else { text = src.mode === 'demo' ? 'Sample traffic, played fast' : `Watching ${src.label}`; px = 'var(--spark-sun)'; }
-  $('proj-text').textContent = text;
-  $('proj-text').style.color = bad ? 'var(--danger)' : '';
-  $('proj-px').style.background = px;
-  const live = ses && ['starting', 'running'].includes(ses.status);
-  $('stop').hidden = !live;
-  $('restart').hidden = !ses;
-  $('restart').textContent = live ? 'Restart' : 'Run again';
-  $('show-output').hidden = !serve || !ses;
+  const src = S.source || {};
+  $('proj-name').textContent = src.project ? src.project.label : src.mode === 'demo' ? 'Sample API' : src.label || 'Repo Trace';
+  const on = S.connected;
+  $('proj-text').textContent = !on ? 'Not connected: is trace still running?' : src.mode === 'demo' ? 'Sample traffic, played fast' : `Watching ${src.label || 'your API'}`;
+  $('proj-px').style.background = on ? 'var(--spark-sun)' : 'var(--ink-muted)';
   for (const b of document.querySelectorAll('nav [data-page]')) {
     if (b.dataset.page === S.page) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   }
@@ -1018,24 +845,9 @@ function drawSide(errors) {
   $('n-errors').classList.toggle('bad', errors.length > 0);
 }
 
-function drawOutput() {
-  const el = $('output');
-  const stick = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;
-  el.textContent = S.output.length ? S.output.join('\n') : 'Nothing yet.';
-  if (stick) el.scrollTop = el.scrollHeight;
-}
-
-const PAGES = { calls: 'Calls', routes: 'Routes', errors: 'Errors', output: 'Output' };
+const PAGES = { calls: 'Calls', routes: 'Routes', errors: 'Errors' };
 function draw() {
   const src = S.source || {};
-  const serve = src.mode === 'serve';
-  const ses = S.session;
-  const picking = serve && (!ses || S.forcePicker);
-  document.body.classList.toggle('picking', picking);
-  $('shell').hidden = picking;
-  $('picker').hidden = !picking;
-  if (picking) { document.title = 'Repo Trace'; drawPicker(); return; }
-
   const focused = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.k : null;
   const errors = errorGroups();
   drawSide(errors);
@@ -1044,12 +856,12 @@ function draw() {
   document.title = `Repo Trace · ${PAGES[page]} · ${$('proj-name').textContent}`;
   $('tools').hidden = page !== 'calls';
   $('route-tools').hidden = true;
-  for (const id of ['calls', 'routes', 'errors', 'output-card', 'empty']) $(id).hidden = true;
+  for (const id of ['calls', 'routes', 'errors', 'empty']) $(id).hidden = true;
 
-  // Live, paused or stopped
+  // Live, paused or not connected (the command stopped, and trace with it)
   const live = $('live');
-  const off = S.paused || !S.connected || (ses && ses.status !== 'running');
-  live.lastChild.textContent = S.paused ? 'Paused' : !S.connected ? 'Reconnecting' : ses && ses.status === 'starting' ? 'Starting' : ses && ses.status !== 'running' ? 'Stopped' : 'Live';
+  const off = S.paused || !S.connected;
+  live.lastChild.textContent = S.paused ? 'Paused' : !S.connected ? 'Not connected' : 'Live';
   live.firstChild.style.background = off ? 'var(--ink-muted)' : 'var(--spark-sun)';
   $('pause').textContent = S.paused ? `Resume${S.queue.length ? ` (${S.queue.length})` : ''}` : 'Pause';
   for (const b of document.querySelectorAll('[data-status]')) b.setAttribute('aria-pressed', String(b.dataset.status === S.status));
@@ -1057,12 +869,7 @@ function draw() {
   const path = S.filter.startsWith('path:') ? S.filter.slice(5) : null;
   fill($('filter-chip'), path && page === 'calls' ? h('span', { class: 'chipfilter' }, `Route ${path}`, h('button', { type: 'button', 'aria-label': 'Show every route', onclick: () => { S.filter = 'all'; render(); } }, '×')) : null);
 
-  if (page === 'output') {
-    $('output-card').hidden = false;
-    $('summary').textContent = ses ? `wrangler dev in ${ses.label}` : '';
-    $('foot').textContent = '';
-    drawOutput();
-  } else if (page === 'routes') {
+  if (page === 'routes') {
     $('routes').hidden = false;
     const called = S.routes ? routeStats().stats.size : 0;
     $('summary').textContent = S.routes ? `${S.routes.length} read from the code · ${called} called` : '';
@@ -1080,12 +887,11 @@ function draw() {
     $('empty').hidden = false;
     $('summary').textContent = '';
     $('foot').textContent = '';
-    const down = ses && ['stopped', 'failed'].includes(ses.status);
-    $('empty-title').textContent = !ses ? 'Waiting for the first call' : down ? `${ses.label} isn't running` : ses.status === 'starting' ? `Starting ${ses.label}…` : 'Waiting for the first request';
+    $('empty-title').textContent = S.connected ? 'Waiting for the first call' : 'Not connected';
     const lead = $('empty-lead');
-    lead.hidden = !ses;
-    if (ses) lead.textContent = down ? 'Run it again from the sidebar. Output has what wrangler printed.'
-      : `${ses.url ? `Your API is on ${ses.url}.` : 'Your API is starting.'} Call it from your app or with curl: each call shows up here.`;
+    lead.hidden = false;
+    lead.textContent = S.connected ? `Repo Trace is watching ${src.label || 'your API'}. Call your API from your app or with curl: each call shows up here.`
+      : 'Start your API with trace in front, in your terminal: trace npm run dev';
   } else {
     $('calls').hidden = false;
     const first = Math.min(...[...S.groups.values()].map((g) => g.first));
@@ -1108,22 +914,12 @@ function toggleTheme() {
   const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
   document.documentElement.dataset.theme = next;
   try { localStorage.setItem('trace-theme', next); } catch {}
-  drawTheme(); changed(); render();
+  drawTheme(); render();
 }
 $('theme').addEventListener('click', toggleTheme);
 drawTheme();
 
 // ---------- buttons ----------
-$('stop').addEventListener('click', () => { api('/api/session', { method: 'DELETE' }).catch(() => {}); });
-$('restart').addEventListener('click', () => {
-  const ses = S.session;
-  if (ses) api('/api/session', { method: 'POST', body: JSON.stringify({ project: ses.project }) }).catch(() => {});
-});
-$('proj-title').addEventListener('click', () => {
-  if ((S.source || {}).mode !== 'serve') return;
-  S.forcePicker = true; loadProjects(P.root, true); render();
-});
-$('show-output').addEventListener('click', () => { S.page = S.page === 'output' ? 'calls' : 'output'; render(); });
 for (const b of document.querySelectorAll('nav [data-page]')) b.addEventListener('click', () => { S.page = b.dataset.page; render(); });
 for (const b of document.querySelectorAll('[data-status]')) b.addEventListener('click', () => { S.status = b.dataset.status; render(); });
 $('q').addEventListener('input', (e) => { S.q = e.target.value; render(); });
@@ -1142,19 +938,11 @@ const es = new EventSource('/events');
 function clearCalls() { S.groups.clear(); S.where.clear(); S.queue = []; S.open = null; S.span = null; }
 es.addEventListener('source', (m) => {
   // A new connection replays everything: start clean.
-  clearCalls(); S.output = []; S.session = null;
+  clearCalls();
   S.source = JSON.parse(m.data);
-  if (S.source.mode === 'serve') loadProjects();
-  else if (S.source.project) loadRoutes(S.source.project.id);
+  if (S.source.project) loadRoutes(S.source.project.id);
   render();
 });
-es.addEventListener('session', (m) => {
-  const ses = JSON.parse(m.data);
-  if (ses && ses.project !== S.routesFor) loadRoutes(ses.project);
-  S.session = ses; render();
-});
-es.addEventListener('output', (m) => { S.output.push(JSON.parse(m.data)); if (S.output.length > 400) S.output.shift(); if (S.page === 'output') render(); });
-es.addEventListener('reset', () => { clearCalls(); S.output = []; render(); });
 es.onopen = () => { S.connected = true; render(); };
 es.onerror = () => { S.connected = false; render(); };
 es.onmessage = (m) => {

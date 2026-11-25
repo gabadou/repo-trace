@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Repo Trace</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 rx=%273%27 fill=%27%231a1a1a%27/%3E%3Crect x=%273%27 y=%276%27 width=%276%27 height=%272%27 fill=%27%23fff%27/%3E%3Crect x=%275%27 y=%279%27 width=%278%27 height=%272%27 fill=%27%23fff%27/%3E%3Crect x=%2711%27 y=%273%27 width=%272%27 height=%272%27 fill=%27%23e8b400%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 rx=%273%27 fill=%27%231a1a1a%27/%3E%3Crect x=%273%27 y=%276%27 width=%276%27 height=%272%27 fill=%27%23fff%27/%3E%3Crect x=%275%27 y=%279%27 width=%278%27 height=%272%27 fill=%27%23fff%27/%3E%3Crect x=%2711%27 y=%273%27 width=%272%27 height=%272%27 fill=%27%232e9e62%27/%3E%3C/svg%3E">
 <script>
   // Theme before paint: the reader's choice, else the system's.
   try {
@@ -18,9 +18,9 @@
 :root {
   --canvas: #ffffff; --dot: #eeeeec; --surface: #ffffff; --surface-2: #f7f7f7; --line: #e6e6e6;
   --ink: #1a1a1a; --ink-muted: #6e6e6e; --ink-inverse: #ffffff;
-  --accent: var(--sun-ink); --accent-soft: var(--sun); --danger: #c23a22;
+  --accent: var(--mint-ink); --accent-soft: var(--mint); --danger: #c23a22;
   --sky: #dcebfc; --sky-ink: #1d4f8c; --lilac: #ece4fb; --lilac-ink: #54348c;
-  --rose: #fbe0e6; --rose-ink: #8c2440; --sun: #fcefc7; --sun-ink: #7a5a00; --spark-sun: #e8b400;
+  --rose: #fbe0e6; --rose-ink: #8c2440; --sun: #fcefc7; --sun-ink: #7a5a00; --spark-sun: #e8b400; --spark-mint: #2e9e62;
   --mint: #d8f2e4; --mint-ink: #1e6b45; --vermilion: #fbe3dc; --vermilion-ink: #a8361c;
   --faint: #f2f2f2; --lab: 220px;
   --font: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -32,7 +32,7 @@
   --ink: #ededed; --ink-muted: #9a9a9a; --ink-inverse: #131313;
   --danger: #f2765e;
   --sky: #16283f; --sky-ink: #8db8ee; --lilac: #2a2140; --lilac-ink: #c3aef2;
-  --rose: #3d1c26; --rose-ink: #f09ab1; --sun: #3a3113; --sun-ink: #f2d478; --spark-sun: #e8b400;
+  --rose: #3d1c26; --rose-ink: #f09ab1; --sun: #3a3113; --sun-ink: #f2d478; --spark-sun: #e8b400; --spark-mint: #2e9e62;
   --mint: #15352a; --mint-ink: #7fd6a6; --vermilion: #3d1e16; --vermilion-ink: #f5a08a;
   --faint: #222222;
   color-scheme: dark;
@@ -61,7 +61,7 @@ h3 { margin: 0; }
 .btn.primary { border: 0; background: var(--ink); color: var(--ink-inverse); font-weight: 500; }
 .tag { display: inline-block; font-size: 12px; line-height: 20px; padding: 0 8px; border-radius: 5px; background: var(--tb); color: var(--ti); white-space: nowrap; }
 .mark { display: flex; align-items: flex-start; gap: 3px; font-weight: 600; font-size: 12px; letter-spacing: 0.32em; }
-.mark i { width: 4px; height: 4px; background: var(--spark-sun); margin-top: 1px; }
+.mark i { width: 4px; height: 4px; background: var(--spark-mint); margin-top: 1px; }
 .theme { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 7px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; flex: none; }
 .pad { margin: 0; padding: 12px 16px; }
 
@@ -76,7 +76,7 @@ nav { display: flex; flex-direction: column; gap: 2px; }
 nav button { display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 20px; border: 0; border-radius: 6px; background: none; text-align: left; cursor: pointer; }
 nav button:hover { background: var(--surface); }
 nav button[aria-current="page"] { padding-left: 8px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); font-weight: 500; }
-nav button[aria-current="page"]::before { content: ""; width: 4px; height: 4px; background: var(--spark-sun); }
+nav button[aria-current="page"]::before { content: ""; width: 4px; height: 4px; background: var(--spark-mint); }
 nav .n { margin-left: auto; font-size: 12px; color: var(--ink-muted); font-weight: 400; }
 nav .n.bad { color: var(--danger); font-weight: 500; }
 .side-foot { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 0 6px; }
@@ -93,7 +93,7 @@ nav .n.bad { color: var(--danger); font-weight: 500; }
 .seg button { height: 26px; padding: 0 9px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-muted); font-size: 13px; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 500; box-shadow: 0 0 0 1px var(--line); }
 .live { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-muted); }
-.chipfilter { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; line-height: 20px; padding: 0 4px 0 8px; border-radius: 6px; background: var(--sun); color: var(--sun-ink); }
+.chipfilter { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; line-height: 20px; padding: 0 4px 0 8px; border-radius: 6px; background: var(--mint); color: var(--mint-ink); }
 .chipfilter button { border: 0; background: none; padding: 0 4px; color: inherit; cursor: pointer; font-size: 13px; }
 .foot { margin: 0; font-size: 12px; line-height: 18px; color: var(--ink-muted); }
 
@@ -106,21 +106,21 @@ nav .n.bad { color: var(--danger); font-weight: 500; }
 .crow + .crow { border-top: 1px solid var(--faint); }
 .chead { display: grid; gap: 12px; align-items: center; width: 100%; padding: 8px 16px; border: 0; background: transparent; text-align: left; font-size: 13px; cursor: pointer; }
 .chead:hover { background: var(--surface-2); }
-.chead[aria-expanded="true"], .chead[aria-expanded="true"]:hover { background: var(--sun); box-shadow: inset 2px 0 0 var(--spark-sun); }
-.chead[aria-expanded="true"] .muted { color: var(--sun-ink); }
+.chead[aria-expanded="true"], .chead[aria-expanded="true"]:hover { background: var(--mint); box-shadow: inset 2px 0 0 var(--spark-mint); }
+.chead[aria-expanded="true"] .muted { color: var(--mint-ink); }
 .chev { display: flex; color: var(--ink-muted); transition: transform 120ms; }
-.chead[aria-expanded="true"] .chev { transform: rotate(90deg); color: var(--sun-ink); }
+.chead[aria-expanded="true"] .chev { transform: rotate(90deg); color: var(--mint-ink); }
 .callname { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .callname .p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .st { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .spx { width: 6px; height: 6px; flex: none; background: color-mix(in srgb, var(--ink-muted) 50%, var(--surface)); }
 .spx.c4 { background: transparent; box-shadow: inset 0 0 0 1px var(--ink-muted); }
 .spx.c5 { background: var(--danger); }
-.spx.run { background: transparent; box-shadow: inset 0 0 0 1px var(--spark-sun); }
+.spx.run { background: transparent; box-shadow: inset 0 0 0 1px var(--spark-mint); }
 .mini { position: relative; display: block; height: 10px; background: var(--surface-2); }
 .mini i { position: absolute; top: 0; left: 0; height: 10px; background: var(--sky); box-shadow: inset 0 0 0 1px var(--sky-ink); }
 .mini i.bad { background: var(--danger); box-shadow: none; }
-.mini i.run { background: transparent; box-shadow: inset 0 0 0 1px var(--spark-sun); }
+.mini i.run { background: transparent; box-shadow: inset 0 0 0 1px var(--spark-mint); }
 .method { font-size: 11px; line-height: 18px; font-weight: 600; letter-spacing: 0.04em; padding: 0 6px; border-radius: 5px; text-align: center; background: var(--tb); color: var(--ti); flex: none; }
 
 /* An open call: its waterfall and the selected step */
@@ -133,11 +133,11 @@ nav .n.bad { color: var(--danger); font-weight: 500; }
   font-size: 13px; position: relative;
 }
 .wrow.axis { height: 24px; cursor: default; font-size: 11px; color: var(--ink-muted); }
-.wrow[aria-selected="true"] { background: var(--sun); box-shadow: inset 2px 0 0 var(--spark-sun); }
+.wrow[aria-selected="true"] { background: var(--mint); box-shadow: inset 2px 0 0 var(--spark-mint); }
 .wrow .label { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .wrow .label b { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wrow .label small { font-size: 11px; color: var(--ink-muted); white-space: nowrap; }
-.wrow[aria-selected="true"] .label small { color: var(--sun-ink); }
+.wrow[aria-selected="true"] .label small { color: var(--mint-ink); }
 .wrow .cost { text-align: right; }
 .track { position: relative; height: 16px; display: block; overflow: hidden; }
 .wrow.axis .track { overflow: visible; }
@@ -147,11 +147,11 @@ nav .n.bad { color: var(--danger); font-weight: 500; }
 .bar.running { border-style: dashed; }
 .note { position: absolute; top: -1px; font-size: 11px; line-height: 18px; white-space: nowrap; padding: 0 4px; background: var(--surface); color: var(--ink-muted); }
 .note.bad { color: var(--danger); }
-.wrow[aria-selected="true"] .note { background: var(--sun); }
+.wrow[aria-selected="true"] .note { background: var(--mint); }
 .gridline { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--faint); pointer-events: none; }
-.gridline.now { background: var(--spark-sun); }
+.gridline.now { background: var(--spark-mint); }
 .tick { position: absolute; top: 2px; transform: translateX(-50%); white-space: nowrap; }
-.tick.now { color: var(--sun-ink); font-weight: 500; background: var(--surface); padding: 0 4px; }
+.tick.now { color: var(--mint-ink); font-weight: 500; background: var(--surface); padding: 0 4px; }
 .costs { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
 .costbar { display: flex; height: 8px; gap: 2px; }
 .costbar span { background: var(--ti); }
@@ -172,9 +172,9 @@ button.rrow:hover { background: var(--surface-2); }
 .rrow.dir .rname b { font-weight: 600; }
 .rrow.idle .rname b { color: var(--ink-muted); }
 .heat { width: 5px; height: 5px; flex: none; background: var(--line); }
-.heat.hot1 { background: color-mix(in srgb, var(--spark-sun) 45%, var(--surface)); }
-.heat.hot2 { background: var(--spark-sun); }
-.heat.hot3 { background: var(--sun-ink); }
+.heat.hot1 { background: color-mix(in srgb, var(--spark-mint) 45%, var(--surface)); }
+.heat.hot2 { background: var(--spark-mint); }
+.heat.hot3 { background: var(--mint-ink); }
 .mchips { display: flex; gap: 4px; flex-wrap: wrap; }
 .mchip { font-size: 11px; line-height: 18px; font-weight: 600; letter-spacing: 0.04em; padding: 0 6px; border-radius: 5px; background: var(--tb); color: var(--ti); }
 .mchip.idle { background: var(--surface-2); color: var(--ink-muted); }
@@ -309,8 +309,8 @@ function plural(word, n) { return n === 1 ? word : word + 's'; }
 
 // Each service gets a tag colour: known ones fixed, others by name.
 const KNOWN = { worker: 'sky', cloudflare: 'sky', d1: 'sky', r2: 'sky', kv: 'sky', queue: 'sky', workflow: 'sky',
-  claude: 'lilac', anthropic: 'lilac', fish: 'rose', elevenlabs: 'vermilion', apple: 'mint', apns: 'mint', openai: 'vermilion' };
-const CYCLE = ['sky', 'lilac', 'rose', 'mint', 'vermilion']; // not sun: it marks the selection
+  claude: 'lilac', anthropic: 'lilac', fish: 'rose', elevenlabs: 'vermilion', apple: 'sun', apns: 'sun', openai: 'vermilion' };
+const CYCLE = ['sky', 'lilac', 'rose', 'sun', 'vermilion']; // not mint: it marks the selection
 function tagOf(svc) {
   const k = String(svc || 'other').toLowerCase();
   if (KNOWN[k]) return KNOWN[k];
@@ -483,7 +483,7 @@ function pathEl(path) {
   return h('span', { class: 'path' }, ...parts.flatMap((p, i) => (i === 0 ? [p] : [h('wbr'), '/' + p])));
 }
 function methodStyle(m) {
-  const t = { GET: 'sky', POST: 'mint', PUT: 'vermilion', PATCH: 'vermilion', DELETE: 'rose', ANY: 'lilac', HEAD: 'sky', OPTIONS: 'lilac' }[m] || 'lilac';
+  const t = { GET: 'sky', POST: 'sun', PUT: 'vermilion', PATCH: 'vermilion', DELETE: 'rose', ANY: 'lilac', HEAD: 'sky', OPTIONS: 'lilac' }[m] || 'lilac';
   return { '--tb': `var(--${t})`, '--ti': `var(--${t}-ink)` };
 }
 
@@ -662,7 +662,7 @@ function waterfall(g, rows, selected) {
 function stepPanel(g, s) {
   if (!s) return h('aside', { class: 'step' }, h('span', { class: 'muted' }, 'Pick a step'));
   const route = g.kind === 'request' ? routeOf(g) : null;
-  const state = s.end == null ? ['Running', 'var(--accent)'] : s.ok === false ? ['Failed', 'var(--danger)'] : ['Done', 'var(--mint-ink)'];
+  const state = s.end == null ? ['Running', 'var(--accent)'] : s.ok === false ? ['Failed', 'var(--danger)'] : ['Done', 'var(--ink)'];
   const facts = [
     ['Took', s.end == null ? `${dur(Date.now() - s.start)} so far` : dur(s.end - s.start)],
     ['Started', `${clock(s.start)} · +${dur(s.start - g.first) || '0 ms'}`],
@@ -835,7 +835,7 @@ function drawSide(errors) {
   $('proj-name').textContent = src.project ? src.project.label : src.mode === 'demo' ? 'Sample API' : src.label || 'Repo Trace';
   const on = S.connected;
   $('proj-text').textContent = !on ? 'Not connected: is trace still running?' : src.mode === 'demo' ? 'Sample traffic, played fast' : `Watching ${src.label || 'your API'}`;
-  $('proj-px').style.background = on ? 'var(--spark-sun)' : 'var(--ink-muted)';
+  $('proj-px').style.background = on ? 'var(--spark-mint)' : 'var(--ink-muted)';
   for (const b of document.querySelectorAll('nav [data-page]')) {
     if (b.dataset.page === S.page) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   }
@@ -862,7 +862,7 @@ function draw() {
   const live = $('live');
   const off = S.paused || !S.connected;
   live.lastChild.textContent = S.paused ? 'Paused' : !S.connected ? 'Not connected' : 'Live';
-  live.firstChild.style.background = off ? 'var(--ink-muted)' : 'var(--spark-sun)';
+  live.firstChild.style.background = off ? 'var(--ink-muted)' : 'var(--spark-mint)';
   $('pause').textContent = S.paused ? `Resume${S.queue.length ? ` (${S.queue.length})` : ''}` : 'Pause';
   for (const b of document.querySelectorAll('[data-status]')) b.setAttribute('aria-pressed', String(b.dataset.status === S.status));
 

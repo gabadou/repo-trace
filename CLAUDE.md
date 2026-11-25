@@ -16,7 +16,7 @@ Studio G tool, one of the Repo tools (with Repo Atlas; "Repo" is the suite, 23 N
 - No dependencies, no build step. Node 20+.
 - Studio G design system: tokens copied by hand from `studio-g/design-system/tokens.json` into the viewer's `:root` (Light) and `[data-theme="dark"]` (After hours). No other hex values. Inter, no monospace except the JSON example and the Output view (a terminal's text). Square pixels mark state. One primary action per view.
 - Services get tag colours (fixed for known names, by hash for others), category only. `danger` only for failures, always with words.
-- Sun is the accent (24 Nov 2026): `spark-sun` for pixels and the selected square, `tag-sun` for selected rows, `tag-sun-ink` for links and accent text (`--accent`). Services and methods keep tag colours as categories, never sun (ElevenLabs is vermilion, PUT and PATCH too).
+- Mint is the accent (25 Nov 2026, was sun since 24 Nov): Repo Trace shares Repo Atlas's signature colour, as the Repo tools. `spark-mint` for pixels, `tag-mint` for selected rows, `tag-mint-ink` for links and accent text (`--accent`). Services and methods keep tag colours as categories, never mint (POST and Apple are sun, ElevenLabs, PUT and PATCH vermilion); "Done" is ink.
 - Copy: few words, verbs on buttons, no exclamation marks, no emoji, no promises of things that aren't built.
 - Privacy: nothing leaves the computer. Repo Trace shows what the app logs; the docs tell apps never to log user text, prompts or keys.
 

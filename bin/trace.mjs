@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 // Repo Trace: see your local API's calls, live, instead of scrolling the terminal.
 //
-//   trace <command…>          run your dev command and watch it (trace npm run dev, trace ./dev.sh)
-//   trace dev [args]          run `wrangler dev` here, with TRACE=1, and watch it
-//   <command> | trace         watch what a command prints
-//   trace demo                a sample API, to try the viewer
+//   repo-trace <command…>     run your dev command and watch it (repo-trace npm run dev, repo-trace ./dev.sh)
+//   repo-trace dev [args]     run `wrangler dev` here, with TRACE=1, and watch it
+//   <command> | repo-trace    watch what a command prints
+//   repo-trace demo           a sample API, to try the viewer
+//
+// The command is repo-trace, not trace: macOS ships its own /usr/bin/trace, which wins on most PATHs (26 Nov 2026).
 //
 // Options, before the command: --port <n> (default 4400), --open (open the browser), --show (keep trace lines in the
 // terminal). The command runs in this terminal as usual; Repo Trace only reads what it prints.
@@ -18,12 +20,12 @@ import { runDemo, DEMO_ROUTES } from '../src/demo.mjs';
 
 const HELP = `Repo Trace: your local API's calls, live, instead of scrolling the terminal.
 
-  trace <command…>          run your dev command and watch it:
-                              trace npm run dev
-                              trace ./dev.sh
-  trace dev [args]          run wrangler dev here (with TRACE=1) and watch it
-  <command> | trace         watch what a command prints
-  trace demo                a sample API, to try the viewer
+  repo-trace <command…>     run your dev command and watch it:
+                              repo-trace npm run dev
+                              repo-trace ./dev.sh
+  repo-trace dev [args]     run wrangler dev here (with TRACE=1) and watch it
+  <command> | repo-trace    watch what a command prints
+  repo-trace demo           a sample API, to try the viewer
 
 Options, before the command
   --port <n>    viewer port (default 4400)
@@ -32,7 +34,7 @@ Options, before the command
 
 The command runs in this terminal as usual. Repo Trace reads the requests it
 prints, and any line of JSON with a "trace" key (docs/format.md). Add it to a
-script to keep it one word away:  "dev:trace": "trace npm run dev"`;
+script to keep it one word away:  "dev:trace": "repo-trace npm run dev"`;
 
 function parseArgs(argv) {
   const opt = { port: 4400, open: false, show: false, cmd: null, rest: [] };
@@ -86,7 +88,7 @@ function watchProcess(command, args, { onLine, show }) {
     stream.on('end', () => copy.end());
   }
   child.on('error', (err) => {
-    console.error(`trace: couldn't run ${command}: ${err.message}`);
+    console.error(`repo-trace: couldn't run ${command}: ${err.message}`);
     process.exit(1);
   });
   child.on('exit', (code, signal) => process.exit(code ?? (signal ? 1 : 0)));
@@ -98,7 +100,7 @@ function watchProcess(command, args, { onLine, show }) {
 async function main() {
   const opt = parseArgs(process.argv.slice(2));
   if (opt.cmd === 'help' || (!opt.cmd && process.stdin.isTTY)) { console.log(HELP); return; }
-  if (opt.cmd === 'run' && !opt.rest.length) { console.error(`trace: which command? For example: trace npm run dev\n\n${HELP}`); process.exit(1); }
+  if (opt.cmd === 'run' && !opt.rest.length) { console.error(`repo-trace: which command? For example: repo-trace npm run dev\n\n${HELP}`); process.exit(1); }
 
   const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
   const source = opt.cmd === 'demo' ? { mode: 'demo', label: 'Sample traffic' }
@@ -113,11 +115,11 @@ async function main() {
     viewer = await startServer({ port: opt.port, source, project });
   } catch (err) {
     console.error(err.code === 'EADDRINUSE'
-      ? `trace: port ${opt.port} is taken (another Repo Trace?). Try --port ${opt.port + 1}`
-      : `trace: ${err.message}`);
+      ? `repo-trace: port ${opt.port} is taken (another Repo Trace?). Try --port ${opt.port + 1}`
+      : `repo-trace: ${err.message}`);
     process.exit(1);
   }
-  console.error(`trace: calls on ${viewer.url}${project && opt.cmd !== 'demo' ? ` · routes from ${project.label}` : ''}`);
+  console.error(`repo-trace: calls on ${viewer.url}${project && opt.cmd !== 'demo' ? ` · routes from ${project.label}` : ''}`);
   if (opt.open) openBrowser(viewer.url);
 
   // A trace line, or one of wrangler dev's own request lines (`GET /v1/x 200 OK (38ms)`), which stays in the terminal.
@@ -136,7 +138,7 @@ async function main() {
     const lines = lineSplitter((line) => { if (!onLine(line) || opt.show) process.stdout.write(line + '\n'); });
     process.stdin.setEncoding('utf8');
     process.stdin.on('data', (c) => lines.push(c));
-    process.stdin.on('end', () => { lines.end(); console.error('trace: input ended; the viewer stays open (Ctrl+C to stop)'); });
+    process.stdin.on('end', () => { lines.end(); console.error('repo-trace: input ended; the viewer stays open (Ctrl+C to stop)'); });
   }
 }
 

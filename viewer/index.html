@@ -834,7 +834,7 @@ function drawSide(errors) {
   const src = S.source || {};
   $('proj-name').textContent = src.project ? src.project.label : src.mode === 'demo' ? 'Sample API' : src.label || 'Repo Trace';
   const on = S.connected;
-  $('proj-text').textContent = !on ? 'Not connected: is trace still running?' : src.mode === 'demo' ? 'Sample traffic, played fast' : `Watching ${src.label || 'your API'}`;
+  $('proj-text').textContent = !on ? 'Not connected: is repo-trace still running?' : src.mode === 'demo' ? 'Sample traffic, played fast' : `Watching ${src.label || 'your API'}`;
   $('proj-px').style.background = on ? 'var(--spark-mint)' : 'var(--ink-muted)';
   for (const b of document.querySelectorAll('nav [data-page]')) {
     if (b.dataset.page === S.page) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
@@ -891,7 +891,7 @@ function draw() {
     const lead = $('empty-lead');
     lead.hidden = false;
     lead.textContent = S.connected ? `Repo Trace is watching ${src.label || 'your API'}. Call your API from your app or with curl: each call shows up here.`
-      : 'Start your API with trace in front, in your terminal: trace npm run dev';
+      : 'Start your API with repo-trace in front, in your terminal: repo-trace npm run dev';
   } else {
     $('calls').hidden = false;
     const first = Math.min(...[...S.groups.values()].map((g) => g.first));

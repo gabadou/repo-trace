@@ -23,7 +23,7 @@
   "author": "Studio G",
   "type": "module",
   "bin": {
-    "trace": "bin/trace.mjs"
+    "repo-trace": "bin/trace.mjs"
   },
   "files": [
     "bin",
